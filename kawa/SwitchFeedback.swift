@@ -25,6 +25,7 @@ final class SwitchFeedback: SwitchFeedbackReporting {
   private let notifications: SwitchNotificationDelivering
   private let status: SwitchStatusDisplaying
   private var generation: UInt = 0
+  private var authorizationStatusGeneration: UInt = 0
 
   init(
     notificationsEnabled: @escaping () -> Bool,
@@ -41,11 +42,16 @@ final class SwitchFeedback: SwitchFeedbackReporting {
     completion: ((SwitchNotificationAuthorization) -> Void)? = nil
   ) {
     generation &+= 1
+    authorizationStatusGeneration &+= 1
+    let requestGeneration = authorizationStatusGeneration
     guard enabled else {
       completion?(.notDetermined)
       return
     }
-    notifications.requestAuthorization { granted in
+    notifications.requestAuthorization { [weak self] granted in
+      guard let self = self,
+            self.authorizationStatusGeneration == requestGeneration,
+            self.notificationsEnabled() else { return }
       completion?(granted ? .authorized : .denied)
     }
   }
@@ -53,7 +59,15 @@ final class SwitchFeedback: SwitchFeedbackReporting {
   func notificationAuthorizationStatus(
     _ completion: @escaping (SwitchNotificationAuthorization) -> Void
   ) {
-    notifications.authorizationStatus(completion)
+    authorizationStatusGeneration &+= 1
+    let requestGeneration = authorizationStatusGeneration
+    guard notificationsEnabled() else { return }
+    notifications.authorizationStatus { [weak self] authorization in
+      guard let self = self,
+            self.authorizationStatusGeneration == requestGeneration,
+            self.notificationsEnabled() else { return }
+      completion(authorization)
+    }
   }
 
   func invalidatePendingFeedback() {

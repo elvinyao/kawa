@@ -3,13 +3,32 @@ import Cocoa
 class PreferencesViewController: NSViewController {
   @IBOutlet weak var showNotificationCheckbox: NSButton!
   private weak var notificationStatusLabel: NSTextField?
+  private var applicationActivationObserver: NSObjectProtocol?
 
   override func viewDidLoad() {
     super.viewDidLoad()
 
     showNotificationCheckbox.state = PermanentStorage.showsNotification.stateValue
     installNotificationStatusLabel()
+    applicationActivationObserver = NotificationCenter.default.addObserver(
+      forName: NSApplication.didBecomeActiveNotification,
+      object: NSApplication.shared,
+      queue: .main
+    ) { [weak self] _ in
+      self?.refreshNotificationStatus()
+    }
+  }
+
+  override func viewWillAppear() {
+    super.viewWillAppear()
+    showNotificationCheckbox.state = PermanentStorage.showsNotification.stateValue
     refreshNotificationStatus()
+  }
+
+  deinit {
+    if let applicationActivationObserver = applicationActivationObserver {
+      NotificationCenter.default.removeObserver(applicationActivationObserver)
+    }
   }
 
   @IBAction func quitApp(_ sender: NSButton) {

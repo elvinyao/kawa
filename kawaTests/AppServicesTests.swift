@@ -399,6 +399,47 @@ final class SwitchFeedbackTests: XCTestCase {
     XCTAssertEqual(status.failures, [])
   }
 
+  func testNewerAuthorizationStatusReadSuppressesOlderResult() {
+    let notifications = RecordingNotificationDelivery()
+    notifications.delaysStatus = true
+    let feedback = SwitchFeedback(
+      notificationsEnabled: { true },
+      notifications: notifications,
+      status: RecordingSwitchStatus()
+    )
+    var observations: [SwitchNotificationAuthorization] = []
+
+    feedback.notificationAuthorizationStatus { observations.append($0) }
+    let olderCompletion = notifications.takePendingStatusRequest()
+    feedback.notificationAuthorizationStatus { observations.append($0) }
+    notifications.authorization = .authorized
+    notifications.completeStatusRequest()
+    olderCompletion?(.denied)
+
+    XCTAssertEqual(observations.count, 1)
+    XCTAssertEqual(observations.first, .authorized)
+  }
+
+  func testTurningPreferenceOffSuppressesPendingAuthorizationStatusRead() {
+    var enabled = true
+    let notifications = RecordingNotificationDelivery()
+    notifications.authorization = .denied
+    notifications.delaysStatus = true
+    let feedback = SwitchFeedback(
+      notificationsEnabled: { enabled },
+      notifications: notifications,
+      status: RecordingSwitchStatus()
+    )
+    var observations: [SwitchNotificationAuthorization] = []
+
+    feedback.notificationAuthorizationStatus { observations.append($0) }
+    enabled = false
+    feedback.notificationPreferenceChanged(enabled: false)
+    notifications.completeStatusRequest()
+
+    XCTAssertEqual(observations, [])
+  }
+
   func testInvalidationSuppressesSuccessWaitingForAuthorizationStatus() {
     let notifications = RecordingNotificationDelivery()
     notifications.authorization = .authorized

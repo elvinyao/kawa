@@ -6,9 +6,17 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
 
   private let targets = InputTarget.allCases
   private let sourceResolver = InputSourcePresentationResolver()
+  private var applicationActivationObserver: NSObjectProtocol?
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    applicationActivationObserver = NotificationCenter.default.addObserver(
+      forName: NSApplication.didBecomeActiveNotification,
+      object: NSApplication.shared,
+      queue: .main
+    ) { [weak self] _ in
+      self?.refreshSourceAvailability()
+    }
     guard let controller = AppServices.shared?.shortcutController else {
       showStatus("Shortcut services are not available.", isError: true)
       return
@@ -28,6 +36,12 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
     tableView.reloadData()
     if let controller = AppServices.shared?.shortcutController {
       showInitialStatus(controller: controller)
+    }
+  }
+
+  deinit {
+    if let applicationActivationObserver = applicationActivationObserver {
+      NotificationCenter.default.removeObserver(applicationActivationObserver)
     }
   }
 
@@ -116,6 +130,21 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
       if let controller = AppServices.shared?.shortcutController {
         self.showInitialStatus(controller: controller)
       }
+    }
+  }
+
+  private func refreshSourceAvailability() {
+    let keyboardColumn = tableView.column(
+      withIdentifier: NSUserInterfaceItemIdentifier("Keyboard")
+    )
+    if keyboardColumn >= 0 {
+      tableView.reloadData(
+        forRowIndexes: IndexSet(integersIn: targets.indices),
+        columnIndexes: IndexSet(integer: keyboardColumn)
+      )
+    }
+    if let controller = AppServices.shared?.shortcutController {
+      showInitialStatus(controller: controller)
     }
   }
 }
