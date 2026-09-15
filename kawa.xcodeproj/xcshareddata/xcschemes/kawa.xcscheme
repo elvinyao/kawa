@@ -28,7 +28,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CC6D8ED91B654099005682C0"
+               BlueprintIdentifier = "AA1400012E70000100A00001"
                BuildableName = "kawaTests.xctest"
                BlueprintName = "kawaTests"
                ReferencedContainer = "container:kawa.xcodeproj">
@@ -46,7 +46,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CC6D8ED91B654099005682C0"
+               BlueprintIdentifier = "AA1400012E70000100A00001"
                BuildableName = "kawaTests.xctest"
                BlueprintName = "kawaTests"
                ReferencedContainer = "container:kawa.xcodeproj">
