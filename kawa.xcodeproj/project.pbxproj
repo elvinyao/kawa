@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA1000012E70000100A00001 /* MASShortcutCompatibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1100012E70000100A00001 /* MASShortcutCompatibilityTests.swift */; };
+		AA1000022E70000100A00001 /* MASShortcut in Frameworks */ = {isa = PBXBuildFile; productRef = AA1800012E70000100A00001 /* MASShortcut */; };
+		AA1000032E70000100A00001 /* MASShortcut in Frameworks */ = {isa = PBXBuildFile; productRef = AA1800022E70000100A00001 /* MASShortcut */; };
 		CC1FEF6F1B685FD3005E9BC8 /* ShortcutCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1FEF6E1B685FD3005E9BC8 /* ShortcutCellView.swift */; };
 		CC4065BE1B6D334B000E1E87 /* PermanentStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4065BD1B6D334B000E1E87 /* PermanentStorage.swift */; };
 		CC4181681B6CB3CB007DA794 /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4181671B6CB3CB007DA794 /* PreferencesViewController.swift */; };
@@ -17,27 +20,12 @@
 		CC6D8ED21B654099005682C0 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CC6D8ED11B654099005682C0 /* Images.xcassets */; };
 		CC6D8ED51B654099005682C0 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CC6D8ED31B654099005682C0 /* Main.storyboard */; };
 		CC6D8EEB1B654143005682C0 /* InputSourceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC6D8EEA1B654143005682C0 /* InputSourceManager.swift */; };
-		CC9AAD2B1B71AA5400626F65 /* MASShortcut.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC9AAD2A1B71AA5400626F65 /* MASShortcut.framework */; };
-		CC9AAD2C1B71AA5400626F65 /* MASShortcut.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = CC9AAD2A1B71AA5400626F65 /* MASShortcut.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		EE92E8FD1F6CC98E00559B7C /* TISInputSource+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE92E8FC1F6CC98E00559B7C /* TISInputSource+Additions.swift */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		CC9AAD2D1B71AA5400626F65 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				CC9AAD2C1B71AA5400626F65 /* MASShortcut.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		CC1FEF6D1B685E9A005E9BC8 /* BridgingHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BridgingHeader.h; sourceTree = "<group>"; };
+		AA1100012E70000100A00001 /* MASShortcutCompatibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MASShortcutCompatibilityTests.swift; sourceTree = "<group>"; };
+		AA1100022E70000100A00001 /* kawaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kawaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC1FEF6E1B685FD3005E9BC8 /* ShortcutCellView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutCellView.swift; sourceTree = "<group>"; };
 		CC4065BD1B6D334B000E1E87 /* PermanentStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PermanentStorage.swift; sourceTree = "<group>"; };
 		CC4181671B6CB3CB007DA794 /* PreferencesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
@@ -49,29 +37,44 @@
 		CC6D8ECD1B654099005682C0 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CC6D8ED11B654099005682C0 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		CC6D8EEA1B654143005682C0 /* InputSourceManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InputSourceManager.swift; sourceTree = "<group>"; };
-		CC9AAD2A1B71AA5400626F65 /* MASShortcut.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MASShortcut.framework; path = Carthage/Build/Mac/MASShortcut.framework; sourceTree = "<group>"; };
 		DE8850D624B633EC002964E4 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = en; path = en.lproj/Main.storyboard; sourceTree = "<group>"; };
 		EE92E8FC1F6CC98E00559B7C /* TISInputSource+Additions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "TISInputSource+Additions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		AA1200012E70000100A00001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA1000032E70000100A00001 /* MASShortcut in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CC6D8EC51B654099005682C0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CC9AAD2B1B71AA5400626F65 /* MASShortcut.framework in Frameworks */,
+				AA1000022E70000100A00001 /* MASShortcut in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AA1300012E70000100A00001 /* kawaTests */ = {
+			isa = PBXGroup;
+			children = (
+				AA1100012E70000100A00001 /* MASShortcutCompatibilityTests.swift */,
+			);
+			path = kawaTests;
+			sourceTree = "<group>";
+		};
 		CC6D8EBF1B654099005682C0 = {
 			isa = PBXGroup;
 			children = (
 				CC6D8ECA1B654099005682C0 /* kawa */,
+				AA1300012E70000100A00001 /* kawaTests */,
 				CC6D8EC91B654099005682C0 /* Products */,
-				CC9AAD2A1B71AA5400626F65 /* MASShortcut.framework */,
 			);
 			sourceTree = "<group>";
 		};
@@ -79,6 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				CC6D8EC81B654099005682C0 /* Kawa.app */,
+				AA1100022E70000100A00001 /* kawaTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -104,7 +108,6 @@
 		CC6D8ECB1B654099005682C0 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				CC1FEF6D1B685E9A005E9BC8 /* BridgingHeader.h */,
 				EE92E8FC1F6CC98E00559B7C /* TISInputSource+Additions.swift */,
 				CC6D8ECC1B654099005682C0 /* Info.plist */,
 			);
@@ -114,6 +117,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		AA1400012E70000100A00001 /* kawaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA1600012E70000100A00001 /* Build configuration list for PBXNativeTarget "kawaTests" */;
+			buildPhases = (
+				AA1200022E70000100A00001 /* Sources */,
+				AA1200012E70000100A00001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = kawaTests;
+			packageProductDependencies = (
+				AA1800022E70000100A00001 /* MASShortcut */,
+			);
+			productName = kawaTests;
+			productReference = AA1100022E70000100A00001 /* kawaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		CC6D8EC71B654099005682C0 /* kawa */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CC6D8EE41B654099005682C0 /* Build configuration list for PBXNativeTarget "kawa" */;
@@ -121,13 +143,15 @@
 				CC6D8EC41B654099005682C0 /* Sources */,
 				CC6D8EC51B654099005682C0 /* Frameworks */,
 				CC6D8EC61B654099005682C0 /* Resources */,
-				CC9AAD2D1B71AA5400626F65 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = kawa;
+			packageProductDependencies = (
+				AA1800012E70000100A00001 /* MASShortcut */,
+			);
 			productName = kawa;
 			productReference = CC6D8EC81B654099005682C0 /* Kawa.app */;
 			productType = "com.apple.product-type.application";
@@ -142,6 +166,9 @@
 				LastUpgradeCheck = 1150;
 				ORGANIZATIONNAME = noraesae;
 				TargetAttributes = {
+					AA1400012E70000100A00001 = {
+						CreatedOnToolsVersion = 27.0;
+					};
 					CC6D8EC71B654099005682C0 = {
 						CreatedOnToolsVersion = 6.4;
 						LastSwiftMigration = 1150;
@@ -156,11 +183,15 @@
 				en,
 			);
 			mainGroup = CC6D8EBF1B654099005682C0;
+			packageReferences = (
+				AA1700012E70000100A00001 /* XCRemoteSwiftPackageReference "MASShortcut" */,
+			);
 			productRefGroup = CC6D8EC91B654099005682C0 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				CC6D8EC71B654099005682C0 /* kawa */,
+				AA1400012E70000100A00001 /* kawaTests */,
 			);
 		};
 /* End PBXProject section */
@@ -178,6 +209,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		AA1200022E70000100A00001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA1000012E70000100A00001 /* MASShortcutCompatibilityTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CC6D8EC41B654099005682C0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -208,9 +247,40 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		AA1500012E70000100A00001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				CODE_SIGN_IDENTITY = "-";
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.noraesae.kawaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		AA1500022E70000100A00001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				CODE_SIGN_IDENTITY = "-";
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = net.noraesae.kawaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		CC6D8EE21B654099005682C0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
@@ -256,10 +326,11 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -267,6 +338,7 @@
 		CC6D8EE31B654099005682C0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
@@ -305,9 +377,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 			};
@@ -316,13 +389,10 @@
 		CC6D8EE51B654099005682C0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/Mac",
-				);
 				INFOPLIST_FILE = kawa/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -330,7 +400,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "net.noraesae.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = Kawa;
-				SWIFT_OBJC_BRIDGING_HEADER = kawa/BridgingHeader.h;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				SUPPORTED_PLATFORMS = macosx;
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 5.0;
 			};
@@ -339,13 +410,10 @@
 		CC6D8EE61B654099005682C0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Carthage/Build/Mac",
-				);
 				INFOPLIST_FILE = kawa/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -353,7 +421,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "net.noraesae.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = Kawa;
-				SWIFT_OBJC_BRIDGING_HEADER = kawa/BridgingHeader.h;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				SUPPORTED_PLATFORMS = macosx;
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 5.0;
 			};
@@ -362,6 +431,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		AA1600012E70000100A00001 /* Build configuration list for PBXNativeTarget "kawaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA1500012E70000100A00001 /* Debug */,
+				AA1500022E70000100A00001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		CC6D8EC31B654099005682C0 /* Build configuration list for PBXProject "kawa" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -381,6 +459,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AA1700012E70000100A00001 /* XCRemoteSwiftPackageReference "MASShortcut" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/cocoabits/MASShortcut.git";
+			requirement = {
+				kind = revision;
+				revision = 6f2603c6b6cc18f64a799e5d2c9d3bbc467c413a;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AA1800012E70000100A00001 /* MASShortcut */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA1700012E70000100A00001 /* XCRemoteSwiftPackageReference "MASShortcut" */;
+			productName = MASShortcut;
+		};
+		AA1800022E70000100A00001 /* MASShortcut */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA1700012E70000100A00001 /* XCRemoteSwiftPackageReference "MASShortcut" */;
+			productName = MASShortcut;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = CC6D8EC01B654099005682C0 /* Project object */;
 }

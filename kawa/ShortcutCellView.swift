@@ -1,4 +1,5 @@
 import Cocoa
+import MASShortcut
 
 class ShortcutCellView: NSTableCellView {
   @IBOutlet weak var shortcutView: MASShortcutView!
