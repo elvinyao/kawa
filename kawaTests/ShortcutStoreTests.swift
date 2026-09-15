@@ -6,6 +6,7 @@ final class ShortcutStoreTests: XCTestCase {
   private var suiteName = ""
   private var defaults: UserDefaults!
   private let command = UInt(NSEvent.ModifierFlags.command.rawValue)
+  private let shift = UInt(NSEvent.ModifierFlags.shift.rawValue)
 
   override func setUp() {
     super.setUp()
@@ -119,6 +120,15 @@ final class ShortcutStoreTests: XCTestCase {
 
   func testBareOrdinaryKeyArchiveIsRejected() throws {
     defaults.set(try rawArchive(keyCode: 0, modifierFlags: 0), forKey: InputTarget.abc.storageKey)
+
+    XCTAssertNil(ShortcutStore(defaults: defaults).binding(for: .abc))
+  }
+
+  func testShiftOnlyOrdinaryKeyArchiveIsRejected() throws {
+    defaults.set(
+      try rawArchive(keyCode: 0, modifierFlags: shift),
+      forKey: InputTarget.abc.storageKey
+    )
 
     XCTAssertNil(ShortcutStore(defaults: defaults).binding(for: .abc))
   }

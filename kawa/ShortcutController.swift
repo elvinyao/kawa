@@ -24,7 +24,8 @@ struct ShortcutBinding: Equatable, Hashable {
       return .unsupportedModifierFlags(unsupported)
     }
 
-    guard modifierFlags != 0 || Self.functionKeyCodes.contains(keyCode) else {
+    let hasSafeModifiers = modifierFlags != 0 && modifierFlags != Self.shiftModifierFlag
+    guard hasSafeModifiers || Self.functionKeyCodes.contains(keyCode) else {
       return .unsafeWithoutModifier
     }
 
@@ -35,6 +36,7 @@ struct ShortcutBinding: Equatable, Hashable {
     122, 120, 99, 118, 96, 97, 98, 100, 101, 109,
     103, 111, 105, 107, 113, 106, 64, 79, 80, 90
   ]
+  private static let shiftModifierFlag: UInt = 1 << 17
 }
 
 protocol ShortcutRegistering {
@@ -247,6 +249,7 @@ final class ShortcutController {
 
   private func attemptRestoredRegistration(for target: InputTarget) {
     var current = state(for: target)
+    guard current.registered == nil else { return }
     guard let binding = current.desired else { return }
 
     if let validationError = binding.validationError {

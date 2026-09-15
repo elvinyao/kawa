@@ -4,6 +4,7 @@ import XCTest
 final class ShortcutControllerTests: XCTestCase {
   private let command = UInt(NSEvent.ModifierFlags.command.rawValue)
   private let option = UInt(NSEvent.ModifierFlags.option.rawValue)
+  private let shift = UInt(NSEvent.ModifierFlags.shift.rawValue)
 
   func testStartRestoresAndTriggersBeforeAnyViewExists() {
     let binding = ShortcutBinding(keyCode: 18, modifierFlags: command)
@@ -224,7 +225,8 @@ final class ShortcutControllerTests: XCTestCase {
       (ShortcutBinding(keyCode: -1, modifierFlags: command), .invalidKeyCode(-1)),
       (ShortcutBinding(keyCode: 128, modifierFlags: command), .invalidKeyCode(128)),
       (ShortcutBinding(keyCode: 18, modifierFlags: unsupported), .unsupportedModifierFlags(unsupported)),
-      (ShortcutBinding(keyCode: 0, modifierFlags: 0), .unsafeWithoutModifier)
+      (ShortcutBinding(keyCode: 0, modifierFlags: 0), .unsafeWithoutModifier),
+      (ShortcutBinding(keyCode: 0, modifierFlags: shift), .unsafeWithoutModifier)
     ]
 
     for (binding, expectedError) in invalid {
@@ -233,6 +235,20 @@ final class ShortcutControllerTests: XCTestCase {
 
     XCTAssertEqual(registrar.registeredBindings, [])
     XCTAssertEqual(store.savedValues.count, 0)
+  }
+
+  func testShiftOnlyPersistedOrdinaryKeyNeverReachesRegistrar() {
+    let binding = ShortcutBinding(keyCode: 0, modifierFlags: shift)
+    let registrar = FakeShortcutRegistrar()
+    let controller = makeController(
+      store: FakeShortcutStore([.abc: binding]),
+      registrar: registrar
+    )
+
+    controller.start()
+
+    XCTAssertEqual(registrar.registeredBindings, [])
+    XCTAssertEqual(controller.error(for: .abc), .unsafeWithoutModifier)
   }
 
   func testBareFunctionKeyIsAllowed() {
@@ -429,6 +445,33 @@ final class ShortcutControllerTests: XCTestCase {
 
     _ = controller.setBinding(nil, for: .hiragana)
 
+    XCTAssertEqual(registrar.activeBindings, [])
+  }
+
+  func testClearingFromStartupErrorCallbackDoesNotReregisterRecoveredTarget() {
+    let failed = ShortcutBinding(keyCode: 18, modifierFlags: command)
+    let recovered = ShortcutBinding(keyCode: 19, modifierFlags: command)
+    let registrar = FakeShortcutRegistrar()
+    registrar.failures.insert(failed)
+    var triggered: [InputTarget] = []
+    var controller: ShortcutController!
+    controller = ShortcutController(
+      store: FakeShortcutStore([.pinyin: failed, .hiragana: recovered]),
+      registrar: registrar,
+      onTrigger: { triggered.append($0) }
+    )
+    controller.onError = { target, _ in
+      if target == .pinyin {
+        _ = controller.setBinding(nil, for: target)
+      }
+    }
+
+    controller.start()
+    registrar.trigger(recovered)
+    controller.stop()
+
+    XCTAssertEqual(registrar.registeredBindings, [failed, recovered])
+    XCTAssertEqual(triggered, [.hiragana])
     XCTAssertEqual(registrar.activeBindings, [])
   }
 
