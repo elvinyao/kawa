@@ -31,7 +31,7 @@ An app-owned switcher requests selection and checks the system-reported result. 
 
 Shortcut ownership belongs to an application-lifetime controller, initialized before the settings window is needed. It restores saved bindings at startup, registers/unregisters only its own shortcuts, and supports idempotent start/stop. Every target has a stable storage key. Read existing MASShortcut archives using a safe codec and migrate supported legacy source-ID keys without deleting them. Corrupt settings must not crash the app or cause unexpected hotkey registration.
 
-Use MASShortcutMonitor directly because MASShortcutBinder discards registration failure. Compare normalized key-code/modifier pairs to reject duplicate assignments across Kawa targets. MASShortcutView's validator continues checking the system/menu conflicts it can detect. Do not claim to detect every shortcut in every third-party app.
+Use an app-owned adapter over MASShortcutMonitor.shared() because its initializer is unavailable and MASShortcutBinder discards registration failure. The adapter/controller track their own registrations and never call unregisterAllShortcuts. Compare normalized key-code/modifier pairs to reject duplicate assignments across Kawa targets. MASShortcutView's validator continues checking the system/menu conflicts it can detect. Do not claim to detect every shortcut in every third-party app.
 
 Changing a shortcut is transactional: reject duplicates before mutation; attempt the new registration before removing an existing working binding; only persist a successful change. Clearing a binding unregisters it and saves the cleared state. Failed persisted registrations remain visible as failures and can be retried after a conflicting binding is cleared. Window creation/destruction never owns registrations.
 
@@ -55,4 +55,4 @@ Produce a Release `Kawa.app` with local/ad-hoc signing suitable for testing, pac
 
 ## Environment note
 
-The old global Docker hook remained active after AGENTS.md changed. Automatic review rejected an unrestricted per-directory exception. A narrower approved exception permits only explicit Kawa Xcode commands and scoped local Git operations. Preserve that boundary; request ordinary sandbox escalation for a concrete native build when Xcode needs its caches or network. Do not bypass the hook via an alternate execution mechanism.
+The old global Docker hook remained active after AGENTS.md changed. Automatic review rejected an unrestricted per-directory exception. Narrower approved exceptions permit explicit Kawa Xcode commands, scoped local Git operations, and fixed project-local packaging/verification commands. Preserve that boundary; request ordinary sandbox escalation for a concrete native build when Xcode needs its caches or network. Do not bypass the hook via an alternate execution mechanism.

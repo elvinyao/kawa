@@ -2,31 +2,31 @@
 
 ## Project Structure & Module Organization
 
-Kawa is a macOS menu bar app for switching input sources with keyboard shortcuts.
+Kawa is a Swift/AppKit menu bar app for switching among Apple Pinyin, Japanese Hiragana, and ABC.
 
-- `kawa/`: Swift sources. `InputSourceManager.swift` wraps Carbon input sources; `ShortcutCellView.swift` binds shortcuts; `PermanentStorage.swift` stores preferences.
+- `kawa/`: application sources. Separate input-source access, switching verification, shortcut registration, persistence, and UI presentation.
 - `kawa/en.lproj/Main.storyboard` and `kawa/Images.xcassets/`: interface and bundled icons. `resource/` contains artwork.
-- `kawa.xcodeproj/`: project settings and shared scheme. `Cartfile` and `Cartfile.resolved` declare and lock MASShortcut; `kawa/BridgingHeader.h` exposes it to Swift.
+- `kawa.xcodeproj/`: native targets, shared scheme, and the SwiftPM dependency lock.
+- `kawaTests/`: unhosted XCTest tests; `docs/`: design, implementation plan, installation instructions, and validation evidence.
 
 ## Build, Test, and Development Commands
 
-Project settings specify Swift 5.0 language mode and macOS 10.15 deployment. MASShortcut is pinned to 2.4.0.
+Use native Xcode on an Apple Silicon Mac. The project uses Swift 5 language mode, arm64, and a macOS 12 deployment floor. MASShortcut is pinned through Swift Package Manager.
 
-- `xcodebuild -version`: inspect the selected native Xcode toolchain.
-- `carthage bootstrap`: prepare dependencies.
-- `xcodebuild -project kawa.xcodeproj -target kawa -configuration Debug build`: build the app. Open `kawa.xcodeproj` in Xcode for interactive runs.
+```sh
+xcodebuild -project kawa.xcodeproj -scheme kawa -configuration Debug -derivedDataPath build/DerivedData -destination 'platform=macOS,arch=arm64' build
+xcodebuild -project kawa.xcodeproj -scheme kawa -configuration Debug -derivedDataPath build/DerivedData -destination 'platform=macOS,arch=arm64' test
+```
 
-Use native macOS and Xcode for builds and input-method validation. The repository's former Docker-only execution policy was explicitly revoked by the user on 2026-09-15.
+The first command builds Kawa; the second runs XCTest. Use `-configuration Release` with `build` for distribution output. Open `kawa.xcodeproj` in Xcode for interactive runs.
 
 ## Coding Style & Naming Conventions
 
-Use two-space indentation, same-line opening braces, `UpperCamelCase` types, and `lowerCamelCase` members. Match existing filenames and extension naming, such as `TISInputSource+Additions.swift`. Preserve storyboard outlets/actions when renaming symbols. No formatter or linter is configured. Keep generated Carthage, build, and Xcode user files untracked.
+Use two-space indentation, same-line opening braces, `UpperCamelCase` types, and `lowerCamelCase` members. Match filenames to types; extensions use names such as `TISInputSource+Additions.swift`. Preserve storyboard outlets/actions. No formatter or linter is configured. Keep `build/` and Xcode user settings untracked.
 
 ## Testing Guidelines
 
-There is no active test target, test directory, CI pipeline, or coverage threshold. The shared scheme retains stale `kawaTests` references. If introducing automated tests, add an XCTest target, use `*Tests.swift` files and `test...` methods, and repair the scheme.
-
-macOS validation should cover shortcut assignment/removal, input switching (including CJK sources), preference persistence, notifications, and status-bar behavior. Record checks unavailable under Docker as unverified.
+Name test files `*Tests.swift` and methods `test...`. Test production logic with injected OS boundaries and isolated UserDefaults suites. Unit tests must not register real hotkeys or change system input sources. No coverage percentage is mandated. Record native UI, CJK composition, persistence, and notification checks in `docs/testing.md`; label unobserved results UNVERIFIED.
 
 ## Commit & Pull Request Guidelines
 
@@ -34,4 +34,4 @@ Follow history's short, imperative subjects, such as `Simplify table view.` Keep
 
 ## Agent Execution Policy
 
-Native host commands are authorized for dependency setup, builds, tests, packaging, and Git operations in this repository. Computer use of the local Xcode app is also authorized. Use project-local build directories, preserve the user's input-source and shortcut preferences during tests, and restore temporary settings after validation. Do not change system-wide security settings or publish releases without explicit authorization. Docker is not required.
+The user revoked Docker-only execution on 2026-09-15. Native builds, tests, packaging, Git work, and computer use of Xcode are authorized. Preserve user preferences and restore temporary test settings. Do not change system security settings or publish releases without explicit authorization.

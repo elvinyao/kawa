@@ -62,14 +62,16 @@ Expected success markers: `BUILD SUCCEEDED`, `TEST SUCCEEDED`. Capture failing b
 
 ## Task 1: Repair native build and establish XCTest
 
+**Completed:** `9de7d85`, with scheme reference correction `5f527c9`; independent spec and quality reviews passed. Debug arm64 build and 1 XCTest passed. MASShortcut revision: `6f2603c6b6cc18f64a799e5d2c9d3bbc467c413a`.
+
 **Files:** project/scheme/Package.resolved, bridging header and Swift imports, `kawaTests/MASShortcutCompatibilityTests.swift`, Cartfile files, storyboard invalid class reference.
 
 - [x] Inspect baseline with the build command. Result: existing macOS 10.15 deployment target is rejected by Xcode 27; Carthage is absent and old framework artifacts are missing.
-- [ ] Replace deployment settings with `ARCHS = arm64; MACOSX_DEPLOYMENT_TARGET = 12.0;` in app/test configurations. Retain Swift 5 language mode and ad-hoc signing. Configure `SUPPORTED_PLATFORMS = macosx`.
-- [ ] Replace Carthage link/embed/search-path entries with `XCRemoteSwiftPackageReference` for `https://github.com/cocoabits/MASShortcut.git` and package product `MASShortcut`. Resolve branch master once, inspect the resulting Package.resolved, then change the requirement to that exact `revision`. Commit the resolved file; remove obsolete Cartfile files.
-- [ ] Use `import MASShortcut` in files that use that module and `import Carbon` where needed. Remove the stale bridging-header setting/import if no Objective-C bridge remains. Remove nonexistent `ShortcutTableView` class metadata while retaining the NSTableView layout.
-- [ ] Add a real unhosted `kawaTests` XCTest bundle, no TEST_HOST/AppDelegate launch. Initially test dependency persistence compatibility. Tests later compile actual core service files into this bundle; exclude AppDelegate and UI integration files.
-- [ ] Add this behavioral archive-compatibility test (module selector types must match the compiler):
+- [x] Replace deployment settings with `ARCHS = arm64; MACOSX_DEPLOYMENT_TARGET = 12.0;` in app/test configurations. Retain Swift 5 language mode and ad-hoc signing. Configure `SUPPORTED_PLATFORMS = macosx`.
+- [x] Replace Carthage link/embed/search-path entries with `XCRemoteSwiftPackageReference` for `https://github.com/cocoabits/MASShortcut.git` and package product `MASShortcut`. Resolve branch master once, inspect the resulting Package.resolved, then change the requirement to that exact `revision`. Commit the resolved file; remove obsolete Cartfile files.
+- [x] Use `import MASShortcut` in files that use that module and `import Carbon` where needed. Remove the stale bridging-header setting/import if no Objective-C bridge remains. Remove nonexistent `ShortcutTableView` class metadata while retaining the NSTableView layout.
+- [x] Add a real unhosted `kawaTests` XCTest bundle, no TEST_HOST/AppDelegate launch. Initially test dependency persistence compatibility. Tests later compile actual core service files into this bundle; exclude AppDelegate and UI integration files.
+- [x] Add this behavioral archive-compatibility test (module selector types must match the compiler):
 ```swift
 import XCTest
 import AppKit
@@ -77,7 +79,7 @@ import MASShortcut
 
 final class MASShortcutCompatibilityTests: XCTestCase {
   func testLegacyArchiveCanBeReadWithSecureDecoder() throws {
-    let original = MASShortcut(keyCode: 18, modifierFlags: [.control, .option])!
+    let original = MASShortcut(keyCode: 18, modifierFlags: [.control, .option])
     let legacy = try NSKeyedArchiver.archivedData(withRootObject: original, requiringSecureCoding: false)
     let restored = try XCTUnwrap(NSKeyedUnarchiver.unarchivedObject(ofClass: MASShortcut.self, from: legacy))
     XCTAssertEqual(restored.keyCode, original.keyCode)
@@ -85,14 +87,16 @@ final class MASShortcutCompatibilityTests: XCTestCase {
   }
 }
 ```
-- [ ] Run build and tests. Investigate package resource loading/compiler diagnostics rather than replacing the recorder speculatively. Record exact revision and remaining upstream warnings.
-- [ ] Spec review, quality review, then commit `Enable native Apple Silicon builds and XCTest.`
+- [x] Run build and tests. Investigate package resource loading/compiler diagnostics rather than replacing the recorder speculatively. Record exact revision and remaining upstream warnings.
+- [x] Spec review, quality review, then commit `Enable native Apple Silicon builds and XCTest.`
 
 ## Task 2: Resolve and verify the three input targets
 
+**Completed:** `4dace77`; spec and quality reviews passed. 22 tests and Debug build passed. Read-only native metadata confirmed all three sources; actual typing remains a manual check.
+
 **Files:** create InputTarget.swift, InputSourceSwitcher.swift, CarbonInputSourceAccess.swift, `kawaTests/InputSourceSwitcherTests.swift`; add these sources to app and tests.
 
-- [ ] Define source metadata and OS-boundary contracts in the tests' desired API:
+- [x] Define source metadata and OS-boundary contracts in the tests' desired API:
 ```swift
 struct InputSourceInfo: Equatable {
   let id: String
@@ -108,7 +112,7 @@ protocol InputSourceAccess {
   func select(_ source: InputSourceInfo) -> Int32
 }
 ```
-- [ ] Test target matching before implementing. ABC matches exact source ID, Pinyin matches its exact ID/mode, and Japanese matches Apple's Hiragana mode plus Apple Japanese/Kotoeri provenance. Include same-language Katakana and Roman descriptors which must be rejected. Disabled/unselectable sources must be rejected.
+- [x] Test target matching before implementing. ABC matches exact source ID, Pinyin matches its exact ID/mode, and Japanese matches Apple's Hiragana mode plus Apple Japanese/Kotoeri provenance. Include same-language Katakana and Roman descriptors which must be rejected. Disabled/unselectable sources must be rejected.
 ```swift
 func testHiraganaDoesNotAcceptKatakana() {
   let source = InputSourceInfo(id: "com.apple.inputmethod.Kotoeri.RomajiTyping.Japanese",
@@ -118,17 +122,19 @@ func testHiraganaDoesNotAcceptKatakana() {
   XCTAssertFalse(InputTarget.hiragana.matches(source))
 }
 ```
-- [ ] Run tests and record the expected failure, then implement the enum and matching using stable identifiers. Use live system metadata during integration to verify identifiers; do not substitute localized-name matching.
-- [ ] Write state-machine tests using a fake `InputSourceAccess` and an injected scheduler that queues callbacks. Assert outcomes and actual selection requests: missing source, already selected target (zero requests), nonzero OSStatus, immediate success, delayed success after current mode changes, timeout after 20 checks, and newer request suppressing an old callback. The completion API is `switchTo(_:completion:)` returning `Result<InputSourceInfo, InputSwitchFailure>`.
-- [ ] Implement the switcher with a monotonically increasing request generation. Resolve fresh enabled sources; early-return if the current descriptor matches; select once; check immediately and then schedule 50 ms checks, at most 20. Every callback checks generation before reporting. Define localized errors for unavailable target, selection status, and unconfirmed target.
-- [ ] Implement the Carbon adapter with TISCreateInputSourceList, TISGetInputSourceProperty, TISSelectInputSource, and TISCopyCurrentKeyboardInputSource. Read ID, mode ID, bundle ID, enabled/selectable properties safely. Freshly resolve the exact ID/mode pair before selection. Never force-enable a source or modify HIToolbox preferences.
-- [ ] Run tests, inspect native source metadata without changing selection, perform both reviews, and commit `Verify exact input-source and Hiragana selection.`
+- [x] Run tests and record the expected failure, then implement the enum and matching using stable identifiers. Use live system metadata during integration to verify identifiers; do not substitute localized-name matching.
+- [x] Write state-machine tests using a fake `InputSourceAccess` and an injected scheduler that queues callbacks. Assert outcomes and actual selection requests: missing source, already selected target (zero requests), nonzero OSStatus, immediate success, delayed success after current mode changes, timeout after 20 checks, and newer request suppressing an old callback. The completion API is `switchTo(_:completion:)` returning `Result<InputSourceInfo, InputSwitchFailure>`.
+- [x] Implement the switcher with a monotonically increasing request generation. Resolve fresh enabled sources; early-return if the current descriptor matches; select once; check immediately and then schedule 50 ms checks, at most 20. Every callback checks generation before reporting. Define localized errors for unavailable target, selection status, and unconfirmed target.
+- [x] Implement the Carbon adapter with TISCreateInputSourceList, TISGetInputSourceProperty, TISSelectInputSource, and TISCopyCurrentKeyboardInputSource. Read ID, mode ID, bundle ID, enabled/selectable properties safely. Freshly resolve the exact ID/mode pair before selection. Never force-enable a source or modify HIToolbox preferences.
+- [x] Run tests, inspect native source metadata without changing selection, perform both reviews, and commit `Verify exact input-source and Hiragana selection.`
 
 ## Task 3: Own hotkeys independently of the settings window
 
+**Completed:** `8569e6b`, hardened in `4e1ea89`; spec and quality reviews passed. 57 tests and Debug build passed, including callback-driven stop/restart and duplicate-recovery regressions.
+
 **Files:** ShortcutController.swift, ShortcutStore.swift, MASShortcutRegistration.swift, `kawaTests/ShortcutControllerTests.swift`, `kawaTests/ShortcutStoreTests.swift`, project source references.
 
-- [ ] Use a value identity for comparisons:
+- [x] Use a value identity for comparisons:
 ```swift
 struct ShortcutBinding: Equatable, Hashable {
   let keyCode: Int
@@ -143,35 +149,41 @@ protocol ShortcutPersisting {
   func save(_ binding: ShortcutBinding?, for target: InputTarget)
 }
 ```
-- [ ] Write tests with real controller/store and OS-boundary fake registrar. Before any view exists, call `start()` and trigger the registered callback; assert it requests the correct target. Call start twice and verify no duplicate registrations. Cover stop twice, duplicate persisted settings, edits, clear, duplicate attempted edit, registration failure preserving the old working binding and saved data, and recovery after clearing a conflicting target.
-- [ ] Implement application-owned registration tracking. New assignments validate before mutation, register before unregistering the old value, and save only after success. Clearing removes only that target's registration. Stop removes only registrations owned by this controller. Keep errors queryable by target; expose change/error callbacks for UI integration. Guard queued stale hotkey actions after a binding is replaced or cleared.
-- [ ] Keep target storage keys stable. Codec uses modern secure MASShortcut archive encoding/decoding; compatibility test covers old non-secure NSData archives. Read original dot-to-hyphen source-ID keys (ABC, Pinyin, Japanese/Hiragana variants) only when a new canonical value is absent. Preserve old keys, and distinguish an explicitly cleared new binding from a never-migrated value so a cleared shortcut cannot reappear after restart.
-- [ ] Use unique UserDefaults suites in storage tests and remove those suites afterward. Test roundtrip, legacy migration, clear/restart, corrupt archive, invalid key/modifier values, and unknown data types. Do not touch the user's production defaults.
-- [ ] Implement MASShortcutRegistration using an app-owned MASShortcutMonitor instance, returning its register result. Convert between MASShortcut.keyCode/modifierFlags and ShortcutBinding. Continue using recorder validation for detectable symbolic/menu conflicts and enforce app-wide duplicates in the controller.
-- [ ] Run tests, perform both reviews, and commit `Manage persistent shortcuts for the application lifetime.`
+- [x] Write tests with real controller/store and OS-boundary fake registrar. Before any view exists, call `start()` and trigger the registered callback; assert it requests the correct target. Call start twice and verify no duplicate registrations. Cover stop twice, duplicate persisted settings, edits, clear, duplicate attempted edit, registration failure preserving the old working binding and saved data, and recovery after clearing a conflicting target.
+- [x] Implement application-owned registration tracking. New assignments validate before mutation, register before unregistering the old value, and save only after success. Clearing removes only that target's registration. Stop removes only registrations owned by this controller. Keep errors queryable by target; expose change/error callbacks for UI integration. Guard queued stale hotkey actions after a binding is replaced or cleared.
+- [x] Keep target storage keys stable. Codec uses modern secure MASShortcut archive encoding/decoding; compatibility test covers old non-secure NSData archives. Read original dot-to-hyphen source-ID keys (ABC, Pinyin, Japanese/Hiragana variants) only when a new canonical value is absent. Preserve old keys, and distinguish an explicitly cleared new binding from a never-migrated value so a cleared shortcut cannot reappear after restart.
+- [x] Use unique UserDefaults suites in storage tests and remove those suites afterward. Test roundtrip, legacy migration, clear/restart, corrupt archive, invalid key/modifier values, and unknown data types. Do not touch the user's production defaults.
+- [x] Implement MASShortcutRegistration as an app-owned adapter over MASShortcutMonitor.shared(), returning its register result. The upstream initializer is unavailable; never call unregisterAllShortcuts. Convert between MASShortcut.keyCode/modifierFlags and ShortcutBinding. Continue using recorder validation for detectable symbolic/menu conflicts and enforce app-wide duplicates in the controller.
+- [x] Run tests, perform both reviews, and commit `Manage persistent shortcuts for the application lifetime.`
 
 ## Task 4: Integrate services into the preserved interface
 
+**Implementation complete:** `9434cb9`, `56c98c9`, `e1fbc3e`; spec and quality reviews passed. Parent independently ran all 81 tests successfully. Native visual acceptance remains pending because the Mac is locked.
+
 **Files:** AppServices.swift, SwitchFeedback.swift, AppDelegate.swift, ShortcutCellView.swift, ShortcutViewController.swift, PreferencesViewController.swift, StatusBar.swift, storyboard/Info.plist, service integration tests.
 
-- [ ] First add regression coverage for service startup, a shortcut requesting verified switching, failure not producing success feedback, and replacement/clear silencing an already queued old callback. Tests use injected services, without launching AppDelegate or mutating system input sources.
-- [ ] Compose one controller, switcher, store, and registrar for the app lifetime. Wire shortcuts to switching and switching completion to feedback. Initialize on applicationDidFinishLaunching before first-use settings presentation. Capture first-launch state before clearing it; show preferences once on first launch, and restore existing shortcuts on later launches without opening the window.
-- [ ] Make ShortcutViewController render three stable rows. A row resolves an optional current icon/name but remains editable if its source is unavailable. Hiragana is explicitly identified. Remove forced unwraps when creating/reusing cells.
-- [ ] Make ShortcutCellView display controller data without associatedUserDefaultsKey or bindShortcut calls. On a valid recorder edit, invoke the controller and restore the old displayed value on failure. Temporarily detach the value-change callback during programmatic assignment to avoid recursion. Show readable validation errors in the existing settings window.
-- [ ] Add visible menu-bar failure indication and an explanatory tooltip/status that does not activate a different application while typing. Clear failure after confirmed success. Send optional success notifications via UserNotifications only after confirmation; request authorization only when the checkbox is explicitly enabled and handle denied permission independently from switching outcome.
-- [ ] Preserve bundle identifier for saved settings, retain menu/window interaction, and mark the test build version clearly. Bundle the upstream license and application license without inventing authorship.
-- [ ] Run automated tests and build. Open the project/app through native Xcode computer use and inspect recorder/table rendering. Fix runtime/resource issues with a reproducing test where practical. Perform both reviews, then commit `Connect native switching services to the existing settings UI.`
+- [x] First add regression coverage for service startup, a shortcut requesting verified switching, failure not producing success feedback, and replacement/clear silencing an already queued old callback. Tests use injected services, without launching AppDelegate or mutating system input sources.
+- [x] Compose one controller, switcher, store, and registrar for the app lifetime. Wire shortcuts to switching and switching completion to feedback. Initialize on applicationDidFinishLaunching before first-use settings presentation. Capture first-launch state before clearing it; show preferences once on first launch, and restore existing shortcuts on later launches without opening the window.
+- [x] Make ShortcutViewController render three stable rows. A row resolves an optional current icon/name but remains editable if its source is unavailable. Hiragana is explicitly identified. Remove forced unwraps when creating/reusing cells.
+- [x] Make ShortcutCellView display controller data without associatedUserDefaultsKey or bindShortcut calls. On a valid recorder edit, invoke the controller and restore the old displayed value on failure. Temporarily detach the value-change callback during programmatic assignment to avoid recursion. Show readable validation errors in the existing settings window.
+- [x] Add visible menu-bar failure indication and an explanatory tooltip/status that does not activate a different application while typing. Clear failure after confirmed success. Send optional success notifications via UserNotifications only after confirmation; request authorization only when the checkbox is explicitly enabled and handle denied permission independently from switching outcome.
+- [x] Preserve bundle identifier for saved settings, retain menu/window interaction, and mark the test build version clearly. Bundle the upstream license and application license without inventing authorship.
+- [x] Run automated tests and build; complete spec and quality reviews and commit the implementation.
+- [ ] Open the project/app through native Xcode computer use and inspect recorder/table rendering. **Blocked: Mac locked; unlock requested.** Runtime/resource checks remain UNVERIFIED.
 
 ## Task 5: Validate and package the test release
 
+**Package created and verified:** `build/release/Kawa-AppleSilicon-test.zip`; architecture/signature/ZIP checks passed. SHA-256 is recorded in `docs/release-checks.md`. Manual acceptance remains pending.
+
 **Files:** docs/testing.md, docs/install-zh.md, THIRD-PARTY-NOTICES.md, README.md, AGENTS.md, packaging recipe and ignored build output.
 
-- [ ] Run the complete native test suite and Release build; record exact Xcode/macOS versions and test totals. Verify Mach-O output using `file` and signature integrity using Xcode's signing output or a separately approved read-only codesign verification.
-- [ ] Through computer use, record temporary distinct hotkeys, test without reopening settings, verify edit/clear/relaunch, and exercise ABC/Pinyin/Hiragana in a disposable text document. Observe actual Hiragana text, not just the menu icon. Test rapid switching, another application's field, and candidate/composition behavior. Restore original input source and all temporary test settings. Do not delete or overwrite user documents.
-- [ ] Write Chinese installation instructions for an arm64 testing-only build: unpack, copy app if desired, enable the three Apple sources, choose three nonconflicting shortcuts, understand failure messages, and note Developer ID/notarization limitations. Do not recommend disabling Gatekeeper or deleting quarantine metadata.
-- [ ] Write the test checklist with PASS/FAIL/UNVERIFIED states and concrete evidence. State deployment floor separately from actually tested OS versions.
-- [ ] Package Release Kawa.app, licenses, and installation/testing notes into `build/release/Kawa-AppleSilicon-test.zip`. Use a reviewed project-local packaging operation or Finder compression; verify the resulting archive contents and embedded arm64 app. Do not publish or install into /Applications automatically.
-- [ ] Update contributor commands and test architecture in AGENTS.md, remove obsolete Docker/Carthage instructions, review the full diff against every spec requirement, perform final spec and code-quality review, and commit `Document and package the Apple Silicon test build.`
+- [x] Run the complete native test suite and Release build; record exact Xcode/macOS versions and test totals. Verify Mach-O output using `file` and signature integrity using Xcode's signing output or a separately approved read-only codesign verification.
+- [ ] **Blocked by locked Mac.** Through computer use, record temporary distinct hotkeys, test without reopening settings, verify edit/clear/relaunch, and exercise ABC/Pinyin/Hiragana in a disposable text document. Observe actual Hiragana text, not just the menu icon. Test rapid switching, another application's field, and candidate/composition behavior. Restore original input source and all temporary test settings. Do not delete or overwrite user documents.
+- [x] Write Chinese installation instructions for an arm64 testing-only build: unpack, copy app if desired, enable the three Apple sources, choose three nonconflicting shortcuts, understand failure messages, and note Developer ID/notarization limitations. Do not recommend disabling Gatekeeper or deleting quarantine metadata.
+- [x] Write the test checklist with PASS/FAIL/UNVERIFIED states and concrete evidence. State deployment floor separately from actually tested OS versions.
+- [x] Package Release Kawa.app, licenses, and installation/testing notes into `build/release/Kawa-AppleSilicon-test.zip`. Use a reviewed project-local packaging operation or Finder compression; verify the resulting archive contents and embedded arm64 app. Do not publish or install into /Applications automatically.
+- [x] Update contributor commands and test architecture in AGENTS.md and README; remove obsolete Docker/Carthage instructions.
+- [x] Complete final whole-implementation spec/code-quality review and commit `Document and package the Apple Silicon test build.` Both final reviews passed for limited test delivery; manual acceptance remains pending as recorded above.
 
 ## Plan self-review
 
