@@ -17,6 +17,14 @@
 		AA2000052E70000200A00001 /* InputSourceSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2100032E70000200A00001 /* InputSourceSwitcher.swift */; };
 		AA2000062E70000200A00001 /* CarbonInputSourceAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2100042E70000200A00001 /* CarbonInputSourceAccess.swift */; };
 		AA2000072E70000200A00001 /* CarbonInputSourceAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2100042E70000200A00001 /* CarbonInputSourceAccess.swift */; };
+		AA3000012E70000300A00001 /* ShortcutControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100012E70000300A00001 /* ShortcutControllerTests.swift */; };
+		AA3000022E70000300A00001 /* ShortcutStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100022E70000300A00001 /* ShortcutStoreTests.swift */; };
+		AA3000032E70000300A00001 /* ShortcutController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100032E70000300A00001 /* ShortcutController.swift */; };
+		AA3000042E70000300A00001 /* ShortcutController.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100032E70000300A00001 /* ShortcutController.swift */; };
+		AA3000052E70000300A00001 /* ShortcutStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100042E70000300A00001 /* ShortcutStore.swift */; };
+		AA3000062E70000300A00001 /* ShortcutStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100042E70000300A00001 /* ShortcutStore.swift */; };
+		AA3000072E70000300A00001 /* MASShortcutRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100052E70000300A00001 /* MASShortcutRegistration.swift */; };
+		AA3000082E70000300A00001 /* MASShortcutRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100052E70000300A00001 /* MASShortcutRegistration.swift */; };
 		CC1FEF6F1B685FD3005E9BC8 /* ShortcutCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1FEF6E1B685FD3005E9BC8 /* ShortcutCellView.swift */; };
 		CC4065BE1B6D334B000E1E87 /* PermanentStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4065BD1B6D334B000E1E87 /* PermanentStorage.swift */; };
 		CC4181681B6CB3CB007DA794 /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4181671B6CB3CB007DA794 /* PreferencesViewController.swift */; };
@@ -37,6 +45,11 @@
 		AA2100022E70000200A00001 /* InputTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputTarget.swift; sourceTree = "<group>"; };
 		AA2100032E70000200A00001 /* InputSourceSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSourceSwitcher.swift; sourceTree = "<group>"; };
 		AA2100042E70000200A00001 /* CarbonInputSourceAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonInputSourceAccess.swift; sourceTree = "<group>"; };
+		AA3100012E70000300A00001 /* ShortcutControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutControllerTests.swift; sourceTree = "<group>"; };
+		AA3100022E70000300A00001 /* ShortcutStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutStoreTests.swift; sourceTree = "<group>"; };
+		AA3100032E70000300A00001 /* ShortcutController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutController.swift; sourceTree = "<group>"; };
+		AA3100042E70000300A00001 /* ShortcutStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutStore.swift; sourceTree = "<group>"; };
+		AA3100052E70000300A00001 /* MASShortcutRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MASShortcutRegistration.swift; sourceTree = "<group>"; };
 		CC1FEF6E1B685FD3005E9BC8 /* ShortcutCellView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutCellView.swift; sourceTree = "<group>"; };
 		CC4065BD1B6D334B000E1E87 /* PermanentStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PermanentStorage.swift; sourceTree = "<group>"; };
 		CC4181671B6CB3CB007DA794 /* PreferencesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
@@ -77,6 +90,8 @@
 			children = (
 				AA1100012E70000100A00001 /* MASShortcutCompatibilityTests.swift */,
 				AA2100012E70000200A00001 /* InputSourceSwitcherTests.swift */,
+				AA3100012E70000300A00001 /* ShortcutControllerTests.swift */,
+				AA3100022E70000300A00001 /* ShortcutStoreTests.swift */,
 			);
 			path = kawaTests;
 			sourceTree = "<group>";
@@ -106,6 +121,9 @@
 				AA2100022E70000200A00001 /* InputTarget.swift */,
 				AA2100032E70000200A00001 /* InputSourceSwitcher.swift */,
 				AA2100042E70000200A00001 /* CarbonInputSourceAccess.swift */,
+				AA3100032E70000300A00001 /* ShortcutController.swift */,
+				AA3100042E70000300A00001 /* ShortcutStore.swift */,
+				AA3100052E70000300A00001 /* MASShortcutRegistration.swift */,
 				CC69E0791B6646B200A92F58 /* StatusBar.swift */,
 				CC4065BD1B6D334B000E1E87 /* PermanentStorage.swift */,
 				CC69E0751B663E1E00A92F58 /* MainWindowController.swift */,
@@ -230,6 +248,11 @@
 			files = (
 				AA1000012E70000100A00001 /* MASShortcutCompatibilityTests.swift in Sources */,
 				AA2000012E70000200A00001 /* InputSourceSwitcherTests.swift in Sources */,
+				AA3000012E70000300A00001 /* ShortcutControllerTests.swift in Sources */,
+				AA3000022E70000300A00001 /* ShortcutStoreTests.swift in Sources */,
+				AA3000042E70000300A00001 /* ShortcutController.swift in Sources */,
+				AA3000062E70000300A00001 /* ShortcutStore.swift in Sources */,
+				AA3000082E70000300A00001 /* MASShortcutRegistration.swift in Sources */,
 				AA2000032E70000200A00001 /* InputTarget.swift in Sources */,
 				AA2000052E70000200A00001 /* InputSourceSwitcher.swift in Sources */,
 				AA2000072E70000200A00001 /* CarbonInputSourceAccess.swift in Sources */,
@@ -243,6 +266,9 @@
 				AA2000022E70000200A00001 /* InputTarget.swift in Sources */,
 				AA2000042E70000200A00001 /* InputSourceSwitcher.swift in Sources */,
 				AA2000062E70000200A00001 /* CarbonInputSourceAccess.swift in Sources */,
+				AA3000032E70000300A00001 /* ShortcutController.swift in Sources */,
+				AA3000052E70000300A00001 /* ShortcutStore.swift in Sources */,
+				AA3000072E70000300A00001 /* MASShortcutRegistration.swift in Sources */,
 				CC1FEF6F1B685FD3005E9BC8 /* ShortcutCellView.swift in Sources */,
 				CC4181681B6CB3CB007DA794 /* PreferencesViewController.swift in Sources */,
 				CC69E07A1B6646B200A92F58 /* StatusBar.swift in Sources */,
