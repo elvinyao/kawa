@@ -158,7 +158,7 @@ protocol ShortcutPersisting {
 
 ## Task 4: Integrate services into the preserved interface
 
-**Implementation complete:** `9434cb9`, `56c98c9`, `e1fbc3e`; spec and quality reviews passed. Parent independently ran all 81 tests successfully. Native visual acceptance remains pending because the Mac is locked.
+**Implementation complete:** `9434cb9`, `56c98c9`, `e1fbc3e`; spec and quality reviews passed. Parent independently ran all 81 tests successfully. Native layout and recorder/storage checks passed after unlocking on 2026-09-16; detailed keyboard acceptance is recorded in `docs/testing.md`.
 
 **Files:** AppServices.swift, SwitchFeedback.swift, AppDelegate.swift, ShortcutCellView.swift, ShortcutViewController.swift, PreferencesViewController.swift, StatusBar.swift, storyboard/Info.plist, service integration tests.
 
@@ -169,7 +169,7 @@ protocol ShortcutPersisting {
 - [x] Add visible menu-bar failure indication and an explanatory tooltip/status that does not activate a different application while typing. Clear failure after confirmed success. Send optional success notifications via UserNotifications only after confirmation; request authorization only when the checkbox is explicitly enabled and handle denied permission independently from switching outcome.
 - [x] Preserve bundle identifier for saved settings, retain menu/window interaction, and mark the test build version clearly. Bundle the upstream license and application license without inventing authorship.
 - [x] Run automated tests and build; complete spec and quality reviews and commit the implementation.
-- [ ] Open the project/app through native Xcode computer use and inspect recorder/table rendering. **Blocked: Mac locked; unlock requested.** Runtime/resource checks remain UNVERIFIED.
+- [x] Open the project/app through native computer use and inspect recorder/table rendering. On 2026-09-16, observed the project in Xcode and launched the staged Release app: three rows, icons, recorders, tabs, and notification preference rendered successfully.
 
 ## Task 5: Validate and package the test release
 
@@ -178,7 +178,7 @@ protocol ShortcutPersisting {
 **Files:** docs/testing.md, docs/install-zh.md, THIRD-PARTY-NOTICES.md, README.md, AGENTS.md, packaging recipe and ignored build output.
 
 - [x] Run the complete native test suite and Release build; record exact Xcode/macOS versions and test totals. Verify Mach-O output using `file` and signature integrity using Xcode's signing output or a separately approved read-only codesign verification.
-- [ ] **Blocked by locked Mac.** Through computer use, record temporary distinct hotkeys, test without reopening settings, verify edit/clear/relaunch, and exercise ABC/Pinyin/Hiragana in a disposable text document. Observe actual Hiragana text, not just the menu icon. Test rapid switching, another application's field, and candidate/composition behavior. Restore original input source and all temporary test settings. Do not delete or overwrite user documents.
+- [ ] **Partially verified, 2026-09-16.** Recording, duplicate rejection, edits, saved/cleared values after relaunch, and restoration of empty bindings passed. The user confirmed the Japanese shortcut in TextEdit and `nihon` to `日本`; `你好` and `Hello` were also observed after test instructions. Exact Pinyin/ABC shortcut confirmation, return from another Japanese mode, rapid switching, in-progress composition, notifications, and final live input-source identity remain unverified. Computer Use's synthetic letter events do not substitute for physical-keyboard acceptance. See `docs/testing.md`.
 - [x] Write Chinese installation instructions for an arm64 testing-only build: unpack, copy app if desired, enable the three Apple sources, choose three nonconflicting shortcuts, understand failure messages, and note Developer ID/notarization limitations. Do not recommend disabling Gatekeeper or deleting quarantine metadata.
 - [x] Write the test checklist with PASS/FAIL/UNVERIFIED states and concrete evidence. State deployment floor separately from actually tested OS versions.
 - [x] Package Release Kawa.app, licenses, and installation/testing notes into `build/release/Kawa-AppleSilicon-test.zip`. Use a reviewed project-local packaging operation or Finder compression; verify the resulting archive contents and embedded arm64 app. Do not publish or install into /Applications automatically.

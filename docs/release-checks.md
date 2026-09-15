@@ -4,8 +4,8 @@
 - Edition: Kawa Test Build 1.2.0 (2), Apple Silicon only.
 - Application source commit: `e1fbc3e`.
 - Verification completed: 2026-09-16, Asia/Tokyo.
-- Size: 480815 bytes.
-- SHA-256: `96c2b8c5b0e1eee99c570a16ef42f9eb5dd2ee53e5bf0d3d780af6a66d09a99a`
+- Size: 482108 bytes.
+- SHA-256: `cf718aa4c968f06acf232ac70d44f91fe607b933f54541dc513d948aa273a61b`
 
 ## Observed results
 
@@ -20,12 +20,21 @@
 The checksum was computed after the final documentation copy and ZIP rebuild.
 This record stays outside the ZIP to avoid a self-referential archive checksum.
 
-## Acceptance still pending
+## Interactive acceptance
 
-Computer Use reported the Mac locked, including a later recheck. No application
-launch/UI inspection, actual hotkey registration, Pinyin/Japanese typing,
-composition behavior, or OS notification display was observed. These remain
-**UNVERIFIED** in `docs/testing.md`. Tests used isolated preferences and did not
-change the selected input source. No temporary manual settings need restoration.
+After unlocking on 2026-09-16, the staged app launched and rendered correctly.
+Recording, duplicate rejection, editing, and saved/cleared settings after relaunch
+passed. The user confirmed Control–Option–A followed by `nihon` produced `日本`
+in TextEdit with Kawa's settings closed. `你好` and `Hello` were subsequently
+observed after instructions to test Pinyin/ABC; exact shortcut use awaits user
+confirmation. Computer Use's synthetic letter events did not reliably emulate
+physical hotkeys.
+
+The original empty bindings were restored and verified after relaunch;
+notifications remained off and Kawa was quit. Test text was saved locally under
+`build/` and is excluded from the archive. Return from another Japanese mode,
+rapid switching, in-progress composition, OS notifications, and final live
+input-source identity remain unverified. See `docs/testing.md` for evidence and
+the distinction between observed results and pending checks.
 
 The test package has not been published or installed into `/Applications`.

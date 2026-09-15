@@ -79,18 +79,52 @@ Before testing, record the original selected input source, all three saved Kawa 
 
 | Check | Status | Evidence |
 | --- | --- | --- |
-| App launch and preserved settings UI | UNVERIFIED | Computer Use initially blocked by locked Mac; unlock requested. |
-| Recording/duplicate/edit/clear | UNVERIFIED | Requires native UI observation. |
-| Hotkeys work without settings window | UNVERIFIED | Requires native UI observation. |
-| ABC text entry | UNVERIFIED | Requires actual keystrokes. |
-| Pinyin composition | UNVERIFIED | Requires actual keystrokes. |
-| Japanese Hiragana and Kanji conversion | UNVERIFIED | Requires actual keystrokes and mode check. |
+| App launch and preserved settings UI | PASS | On 2026-09-16, launched the staged Release app through Computer Use after unlocking. Observed `Kawa Test Build`, all three target rows and recorders, input-source icons, both tabs, and the unchecked notification preference. |
+| Recording/duplicate/edit/clear | PASS (UI/storage) | Recorded three distinct modifier combinations; duplicate Japanese assignment showed an error and preserved old values. Edited ABC from Control–Command–A to Control–Option–Shift–A, then cleared it. Physical old/new-key behavior remains unverified. |
+| Hotkeys work without settings window | PARTIAL PASS | Japanese: user confirmed pressing physical Control–Option–A in TextEdit, then typing `nihon` to obtain `日本`, after settings were closed. Pinyin/ABC pending. |
+| ABC text entry | PARTIAL PASS | Observed `Hello` in TextEdit after requesting the physical ABC shortcut test. Exact shortcut use awaits user confirmation. |
+| Pinyin composition | PARTIAL PASS | Observed `你好` in TextEdit after requesting the physical Pinyin shortcut/candidate test. The candidate UI and exact shortcut use await user confirmation. |
+| Japanese Hiragana and Kanji conversion | PASS (user-assisted) | TextEdit visibly contained `日本`; user explicitly confirmed it followed physical Control–Option–A and `nihon`. Intermediate Hiragana composition was not separately captured. |
 | Return from another Japanese mode | UNVERIFIED | Requires native UI observation. |
-| Rapid switching and another application | UNVERIFIED | Requires native UI observation. |
-| Relaunch restores saved/cleared state | UNVERIFIED | Requires native UI observation. |
+| Rapid switching and another application | PARTIAL PASS | Japanese hotkey worked in TextEdit; rapid sequences and another text application remain unverified. |
+| Relaunch restores saved/cleared state | PASS (UI/storage) | Quit using Quit Kawa and relaunched: all three saved bindings remained. Cleared all three, quit/relaunched again: all three remained empty. Hotkeys before opening settings on relaunch were not separately exercised. |
 | In-progress candidate/composition handling | UNVERIFIED | Requires native UI observation. |
 | Failure feedback and optional notifications | UNVERIFIED | Requires native UI observation. |
-| Temporary settings restored | NOT STARTED | No test hotkeys/input-source changes have been made. |
+| Temporary settings restored | PARTIAL PASS | All three original empty bindings restored and verified after relaunch; notifications stayed off; Quit Kawa invoked. Final active input-source identity was not independently verified. |
+
+### Interactive session, 2026-09-16
+
+Read-only HIToolbox preferences reported ABC before testing. This is persisted
+metadata, not an independent live TIS query of the foreground application's mode.
+All three shortcuts were empty and notifications were off. The staged Release
+app launched successfully. A duplicate assignment was rejected with a visible
+message, preserving the existing Pinyin binding and the empty Japanese binding.
+
+Computer Use's `pressKey` calls for modified `1`, `j`, and `e` were all displayed
+by the recorder as physical key A, with the requested modifiers. Temporary
+bindings are therefore Pinyin Control–Option–Command–A, Japanese Control–Option–A,
+and ABC Control–Command–A. Sending the Japanese combination from TextEdit inserted
+a control character; subsequent individual `nihon` calls produced Latin text.
+These synthetic events do not establish actual keyboard or IME behavior. A
+physical-keyboard check was requested to distinguish automation limitations
+from an application defect. The user subsequently confirmed that physical
+Control–Option–A followed by `nihon` produced `日本`; that output was also observed
+in TextEdit. This establishes successful real-keyboard Japanese switching and
+Kanji conversion despite the synthetic-event limitation. No system notification
+permission was requested.
+
+After a further physical-keyboard test request, TextEdit contained `你好` and
+`Hello`. These outputs were observed, but exact Pinyin/ABC shortcut use has not
+yet been confirmed by the user. Saved shortcut values survived quitting and
+relaunching. Editing and clearing worked in the recorder. Finally, all three
+bindings were restored to their original empty state, quit/relaunched, and
+verified empty; the notification checkbox remained off. Kawa was then quit.
+The test document was saved locally as `build/Kawa-input-test-2026-09-16.rtf`
+and closed; it is ignored by Git and excluded from the release ZIP.
+
+This session did not verify return from Katakana/Roman mode, rapid switching,
+in-progress composition policy, or OS notification display. These require
+further physical-keyboard acceptance and must not be inferred from unit tests.
 
 ## Packaging
 
@@ -104,5 +138,5 @@ Final package: `build/release/Kawa-AppleSilicon-test.zip`. Include `Kawa.app`, C
 
 The archive checksum is recorded separately in `docs/release-checks.md` so this
 document does not embed its own archive's changing hash. Native interactive
-acceptance remains UNVERIFIED; this package has not been publicly uploaded or
+acceptance is partial, as detailed above; this package has not been publicly uploaded or
 automatically installed into `/Applications`.
