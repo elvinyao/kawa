@@ -64,6 +64,7 @@ final class AppServices: AppServiceLifecycle {
 
   private func switchInput(to target: InputTarget) {
     guard started else { return }
+    feedback.invalidatePendingFeedback()
     let requestGeneration = lifecycleGeneration
     switcher.switchTo(target) { [weak self] result in
       guard let self = self,
@@ -85,8 +86,7 @@ final class AppLaunchCoordinator {
   private let isFirstLaunch: () -> Bool
   private let markFirstLaunchComplete: () -> Void
   private let showPreferences: () -> Void
-  private var firstActivation = true
-  private var showOnFirstActivation = false
+  private var finishedLaunching = false
 
   init(
     services: AppServiceLifecycle,
@@ -101,23 +101,20 @@ final class AppLaunchCoordinator {
   }
 
   func applicationDidFinishLaunching() {
+    guard !finishedLaunching else { return }
+    finishedLaunching = true
     let firstLaunch = isFirstLaunch()
     services.start()
-    showOnFirstActivation = firstLaunch
     if firstLaunch {
+      showPreferences()
       markFirstLaunchComplete()
     }
   }
 
-  func applicationDidBecomeActive() {
-    if firstActivation {
-      firstActivation = false
-      if showOnFirstActivation {
-        showOnFirstActivation = false
-        showPreferences()
-      }
-      return
-    }
+  func applicationDidBecomeActive() {}
+
+  func applicationShouldHandleReopen() {
+    guard finishedLaunching else { return }
     showPreferences()
   }
 

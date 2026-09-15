@@ -99,6 +99,37 @@ final class AppServicesTests: XCTestCase {
     XCTAssertEqual(feedback.successes.count, 0)
     XCTAssertEqual(feedback.failures.count, 0)
   }
+
+  func testNewSwitchRequestInvalidatesOlderSuccessWaitingForNotificationStatus() {
+    let pinyinBinding = ShortcutBinding(keyCode: 18, modifierFlags: command)
+    let abcBinding = ShortcutBinding(keyCode: 19, modifierFlags: command)
+    let registrar = IntegrationShortcutRegistrar()
+    let access = IntegrationInputSourceAccess(sources: [.pinyin, .abc], current: .pinyin)
+    let scheduler = IntegrationQueuedScheduler()
+    let notifications = RecordingNotificationDelivery()
+    notifications.authorization = .authorized
+    notifications.delaysStatus = true
+    let feedback = SwitchFeedback(
+      notificationsEnabled: { true },
+      notifications: notifications,
+      status: RecordingSwitchStatus()
+    )
+    let services = AppServices(
+      store: IntegrationShortcutStore([.pinyin: pinyinBinding, .abc: abcBinding]),
+      registrar: registrar,
+      access: access,
+      schedule: scheduler.schedule,
+      feedback: feedback
+    )
+    services.start()
+    registrar.trigger(pinyinBinding)
+
+    access.currentSource = .pinyin
+    registrar.trigger(abcBinding)
+    notifications.completeStatusRequest()
+
+    XCTAssertEqual(notifications.deliveredTitles, [])
+  }
 }
 
 final class AppLaunchCoordinatorTests: XCTestCase {
@@ -116,12 +147,46 @@ final class AppLaunchCoordinatorTests: XCTestCase {
     )
 
     coordinator.applicationDidFinishLaunching()
-    XCTAssertEqual(events, ["read-first-launch", "start", "mark-complete"])
+    XCTAssertEqual(events, [
+      "read-first-launch", "start", "show-preferences", "mark-complete"
+    ])
+  }
+
+  func testActivationBeforeFinishDoesNotConsumeFirstLaunchPresentation() {
+    var events: [String] = []
+    let coordinator = AppLaunchCoordinator(
+      services: RecordingServiceLifecycle(onStart: { events.append("start") }),
+      isFirstLaunch: { true },
+      markFirstLaunchComplete: { events.append("mark-complete") },
+      showPreferences: { events.append("show-preferences") }
+    )
 
     coordinator.applicationDidBecomeActive()
-    XCTAssertEqual(events, [
-      "read-first-launch", "start", "mark-complete", "show-preferences"
-    ])
+    coordinator.applicationDidFinishLaunching()
+
+    XCTAssertEqual(events, ["start", "show-preferences", "mark-complete"])
+  }
+
+  func testFinishLaunchIsIdempotentDuringFirstLaunchPresentation() {
+    var startCount = 0
+    var showCount = 0
+    var markCount = 0
+    var coordinator: AppLaunchCoordinator!
+    coordinator = AppLaunchCoordinator(
+      services: RecordingServiceLifecycle(onStart: { startCount += 1 }),
+      isFirstLaunch: { true },
+      markFirstLaunchComplete: { markCount += 1 },
+      showPreferences: {
+        showCount += 1
+        coordinator.applicationDidFinishLaunching()
+      }
+    )
+
+    coordinator.applicationDidFinishLaunching()
+
+    XCTAssertEqual(startCount, 1)
+    XCTAssertEqual(showCount, 1)
+    XCTAssertEqual(markCount, 1)
   }
 
   func testLaterLaunchRestoresServicesWithoutOpeningPreferences() {
@@ -139,7 +204,7 @@ final class AppLaunchCoordinatorTests: XCTestCase {
     XCTAssertEqual(events, ["start"])
   }
 
-  func testLaterApplicationActivationReopensPreferences() {
+  func testApplicationReopenShowsPreferencesAfterLaunch() {
     var showCount = 0
     let coordinator = AppLaunchCoordinator(
       services: RecordingServiceLifecycle(),
@@ -148,9 +213,7 @@ final class AppLaunchCoordinatorTests: XCTestCase {
       showPreferences: { showCount += 1 }
     )
     coordinator.applicationDidFinishLaunching()
-    coordinator.applicationDidBecomeActive()
-
-    coordinator.applicationDidBecomeActive()
+    coordinator.applicationShouldHandleReopen()
 
     XCTAssertEqual(showCount, 1)
   }

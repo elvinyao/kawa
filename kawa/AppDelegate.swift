@@ -28,8 +28,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     launchCoordinator.applicationDidFinishLaunching()
   }
 
-  func applicationDidBecomeActive(_ notification: Notification) {
-    launchCoordinator.applicationDidBecomeActive()
+  func applicationShouldHandleReopen(
+    _ sender: NSApplication,
+    hasVisibleWindows flag: Bool
+  ) -> Bool {
+    launchCoordinator.applicationShouldHandleReopen()
+    return true
   }
 
   func applicationWillTerminate(_ notification: Notification) {
