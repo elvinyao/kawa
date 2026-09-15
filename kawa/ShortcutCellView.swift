@@ -4,43 +4,53 @@ import MASShortcut
 class ShortcutCellView: NSTableCellView {
   @IBOutlet weak var shortcutView: MASShortcutView!
 
-  var inputSource: InputSource?
-  var shortcutKey: String?
+  private weak var controller: ShortcutController?
+  private var target: InputTarget?
+  private var onError: ((ShortcutControllerError) -> Void)?
 
-  func setInputSource(_ inputSource: InputSource) {
-    self.inputSource = inputSource
-    shortcutKey = inputSource.id.replacingOccurrences(of: ".", with: "-")
-    shortcutView.associatedUserDefaultsKey = shortcutKey!
-    shortcutView.shortcutValueChange = self.shortcutValueDidChange
-    MASShortcutBinder.shared().bindShortcut(withDefaultsKey: shortcutKey!, toAction: selectInput)
+  func configure(
+    target: InputTarget,
+    controller: ShortcutController,
+    onError: @escaping (ShortcutControllerError) -> Void
+  ) {
+    self.target = target
+    self.controller = controller
+    self.onError = onError
+    load(controller.binding(for: target))
   }
 
   func shortcutValueDidChange(_ sender: MASShortcutView?) {
-    if sender?.shortcutValue == nil {
-      resetShortcutBinder()
+    guard sender === shortcutView,
+          let target = target,
+          let controller = controller else { return }
+    let binding = sender?.shortcutValue.map {
+      ShortcutBinding(
+        keyCode: $0.keyCode,
+        modifierFlags: UInt($0.modifierFlags.rawValue)
+      )
+    }
+
+    if case .failure(let error) = controller.setBinding(binding, for: target) {
+      load(controller.binding(for: target))
+      onError?(error)
     }
   }
 
-  func resetShortcutBinder() {
-    MASShortcutBinder.shared().breakBinding(withDefaultsKey: shortcutKey!)
-    MASShortcutBinder.shared().bindShortcut(withDefaultsKey: shortcutKey!, toAction: selectInput)
+  func refresh() {
+    guard let target = target else { return }
+    load(controller?.binding(for: target))
   }
 
-  func selectInput() {
-    guard let inputSource = inputSource else { return }
-
-    inputSource.select()
-
-    if PermanentStorage.showsNotification {
-      showNotification(inputSource.name, icon: inputSource.icon)
+  private func load(_ binding: ShortcutBinding?) {
+    shortcutView.shortcutValueChange = nil
+    shortcutView.shortcutValue = binding.map {
+      MASShortcut(
+        keyCode: $0.keyCode,
+        modifierFlags: NSEvent.ModifierFlags(rawValue: $0.modifierFlags)
+      )
     }
-  }
-
-  func showNotification(_ message: String, icon: NSImage?) {
-    NSUserNotificationCenter.default.removeAllDeliveredNotifications()
-    let notification = NSUserNotification()
-    notification.informativeText = message
-    notification.contentImage = icon
-    NSUserNotificationCenter.default.deliver(notification)
+    shortcutView.shortcutValueChange = { [weak self] sender in
+      self?.shortcutValueDidChange(sender)
+    }
   }
 }

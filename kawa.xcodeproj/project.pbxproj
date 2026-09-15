@@ -25,6 +25,13 @@
 		AA3000062E70000300A00001 /* ShortcutStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100042E70000300A00001 /* ShortcutStore.swift */; };
 		AA3000072E70000300A00001 /* MASShortcutRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100052E70000300A00001 /* MASShortcutRegistration.swift */; };
 		AA3000082E70000300A00001 /* MASShortcutRegistration.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3100052E70000300A00001 /* MASShortcutRegistration.swift */; };
+		AA4000012E70000400A00001 /* AppServicesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4100012E70000400A00001 /* AppServicesTests.swift */; };
+		AA4000022E70000400A00001 /* AppServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4100022E70000400A00001 /* AppServices.swift */; };
+		AA4000032E70000400A00001 /* AppServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4100022E70000400A00001 /* AppServices.swift */; };
+		AA4000042E70000400A00001 /* SwitchFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4100032E70000400A00001 /* SwitchFeedback.swift */; };
+		AA4000052E70000400A00001 /* SwitchFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4100032E70000400A00001 /* SwitchFeedback.swift */; };
+		AA4000062E70000400A00001 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = AA4100042E70000400A00001 /* LICENSE */; };
+		AA4000072E70000400A00001 /* THIRD-PARTY-NOTICES.md in Resources */ = {isa = PBXBuildFile; fileRef = AA4100052E70000400A00001 /* THIRD-PARTY-NOTICES.md */; };
 		CC1FEF6F1B685FD3005E9BC8 /* ShortcutCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1FEF6E1B685FD3005E9BC8 /* ShortcutCellView.swift */; };
 		CC4065BE1B6D334B000E1E87 /* PermanentStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4065BD1B6D334B000E1E87 /* PermanentStorage.swift */; };
 		CC4181681B6CB3CB007DA794 /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4181671B6CB3CB007DA794 /* PreferencesViewController.swift */; };
@@ -50,6 +57,11 @@
 		AA3100032E70000300A00001 /* ShortcutController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutController.swift; sourceTree = "<group>"; };
 		AA3100042E70000300A00001 /* ShortcutStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutStore.swift; sourceTree = "<group>"; };
 		AA3100052E70000300A00001 /* MASShortcutRegistration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MASShortcutRegistration.swift; sourceTree = "<group>"; };
+		AA4100012E70000400A00001 /* AppServicesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppServicesTests.swift; sourceTree = "<group>"; };
+		AA4100022E70000400A00001 /* AppServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppServices.swift; sourceTree = "<group>"; };
+		AA4100032E70000400A00001 /* SwitchFeedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwitchFeedback.swift; sourceTree = "<group>"; };
+		AA4100042E70000400A00001 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = SOURCE_ROOT; };
+		AA4100052E70000400A00001 /* THIRD-PARTY-NOTICES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "THIRD-PARTY-NOTICES.md"; sourceTree = SOURCE_ROOT; };
 		CC1FEF6E1B685FD3005E9BC8 /* ShortcutCellView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutCellView.swift; sourceTree = "<group>"; };
 		CC4065BD1B6D334B000E1E87 /* PermanentStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PermanentStorage.swift; sourceTree = "<group>"; };
 		CC4181671B6CB3CB007DA794 /* PreferencesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
@@ -92,6 +104,7 @@
 				AA2100012E70000200A00001 /* InputSourceSwitcherTests.swift */,
 				AA3100012E70000300A00001 /* ShortcutControllerTests.swift */,
 				AA3100022E70000300A00001 /* ShortcutStoreTests.swift */,
+				AA4100012E70000400A00001 /* AppServicesTests.swift */,
 			);
 			path = kawaTests;
 			sourceTree = "<group>";
@@ -101,6 +114,8 @@
 			children = (
 				CC6D8ECA1B654099005682C0 /* kawa */,
 				AA1300012E70000100A00001 /* kawaTests */,
+				AA4100042E70000400A00001 /* LICENSE */,
+				AA4100052E70000400A00001 /* THIRD-PARTY-NOTICES.md */,
 				CC6D8EC91B654099005682C0 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -118,6 +133,8 @@
 			isa = PBXGroup;
 			children = (
 				CC6D8ECD1B654099005682C0 /* AppDelegate.swift */,
+				AA4100022E70000400A00001 /* AppServices.swift */,
+				AA4100032E70000400A00001 /* SwitchFeedback.swift */,
 				AA2100022E70000200A00001 /* InputTarget.swift */,
 				AA2100032E70000200A00001 /* InputSourceSwitcher.swift */,
 				AA2100042E70000200A00001 /* CarbonInputSourceAccess.swift */,
@@ -234,6 +251,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA4000062E70000400A00001 /* LICENSE in Resources */,
+				AA4000072E70000400A00001 /* THIRD-PARTY-NOTICES.md in Resources */,
 				CC6D8ED21B654099005682C0 /* Images.xcassets in Resources */,
 				CC6D8ED51B654099005682C0 /* Main.storyboard in Resources */,
 			);
@@ -250,6 +269,9 @@
 				AA2000012E70000200A00001 /* InputSourceSwitcherTests.swift in Sources */,
 				AA3000012E70000300A00001 /* ShortcutControllerTests.swift in Sources */,
 				AA3000022E70000300A00001 /* ShortcutStoreTests.swift in Sources */,
+				AA4000012E70000400A00001 /* AppServicesTests.swift in Sources */,
+				AA4000032E70000400A00001 /* AppServices.swift in Sources */,
+				AA4000052E70000400A00001 /* SwitchFeedback.swift in Sources */,
 				AA3000042E70000300A00001 /* ShortcutController.swift in Sources */,
 				AA3000062E70000300A00001 /* ShortcutStore.swift in Sources */,
 				AA3000082E70000300A00001 /* MASShortcutRegistration.swift in Sources */,
@@ -264,6 +286,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA2000022E70000200A00001 /* InputTarget.swift in Sources */,
+				AA4000022E70000400A00001 /* AppServices.swift in Sources */,
+				AA4000042E70000400A00001 /* SwitchFeedback.swift in Sources */,
 				AA2000042E70000200A00001 /* InputSourceSwitcher.swift in Sources */,
 				AA2000062E70000200A00001 /* CarbonInputSourceAccess.swift in Sources */,
 				AA3000032E70000300A00001 /* ShortcutController.swift in Sources */,
@@ -446,7 +470,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "net.noraesae.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = net.noraesae.Kawa;
 				PRODUCT_NAME = Kawa;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				SUPPORTED_PLATFORMS = macosx;
@@ -467,7 +491,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "net.noraesae.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = net.noraesae.Kawa;
 				PRODUCT_NAME = Kawa;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				SUPPORTED_PLATFORMS = macosx;

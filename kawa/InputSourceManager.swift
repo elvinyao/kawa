@@ -1,74 +1,51 @@
 import Carbon
 import Cocoa
 
-class InputSource {
-  let tisInputSource: TISInputSource
+struct InputSourcePresentation {
+  let name: String
   let icon: NSImage?
+}
 
-  var id: String {
-    return tisInputSource.id
+final class InputSourcePresentationResolver {
+  func presentation(for target: InputTarget) -> InputSourcePresentation? {
+    rawSources().compactMap(makePresentation).first { target.matches($0.info) }.map {
+      InputSourcePresentation(name: $0.name, icon: $0.icon)
+    }
   }
 
-  var name: String {
-    return tisInputSource.name
+  private func rawSources() -> [TISInputSource] {
+    guard let list = TISCreateInputSourceList(nil, false)?.takeRetainedValue() as NSArray? else {
+      return []
+    }
+    return list as? [TISInputSource] ?? []
   }
 
-  init(tisInputSource: TISInputSource) {
-    self.tisInputSource = tisInputSource
+  private func makePresentation(
+    _ source: TISInputSource
+  ) -> (info: InputSourceInfo, name: String, icon: NSImage?)? {
+    guard let id: String = source.safeProperty(kTISPropertyInputSourceID) else { return nil }
+    let info = InputSourceInfo(
+      id: id,
+      modeID: source.safeProperty(kTISPropertyInputModeID),
+      bundleID: source.safeProperty(kTISPropertyBundleID),
+      isEnabled: source.safeProperty(kTISPropertyInputSourceIsEnabled) ?? false,
+      isSelectable: source.safeProperty(kTISPropertyInputSourceIsSelectCapable) ?? false
+    )
+    let name: String = source.safeProperty(kTISPropertyLocalizedName) ?? id
+    return (info, name, loadIcon(for: source))
+  }
 
-    var iconImage: NSImage? = nil
-
-    if let imageURL = tisInputSource.iconImageURL {
-      for url in [imageURL.retinaImageURL, imageURL.tiffImageURL, imageURL] {
-        if let image = NSImage(contentsOf: url) {
-          iconImage = image
-          break
-        }
+  private func loadIcon(for source: TISInputSource) -> NSImage? {
+    if let iconURL: URL = source.safeProperty(kTISPropertyIconImageURL) {
+      let candidates = [
+        iconURL.deletingPathExtension().appendingPathExtension("tiff"),
+        iconURL
+      ]
+      if let image = candidates.lazy.compactMap({ NSImage(contentsOf: $0) }).first {
+        return image
       }
     }
 
-    if iconImage == nil, let iconRef = tisInputSource.iconRef {
-      iconImage = NSImage(iconRef: iconRef)
-    }
-
-    self.icon = iconImage
-  }
-
-  func select() {
-    TISSelectInputSource(tisInputSource)
-  }
-}
-
-extension InputSource: Equatable {
-  static func == (lhs: InputSource, rhs: InputSource) -> Bool {
-    return lhs.id == rhs.id
-  }
-}
-
-extension InputSource {
-  static var sources: [InputSource] {
-    let inputSourceNSArray = TISCreateInputSourceList(nil, false).takeRetainedValue() as NSArray
-    let inputSourceList = inputSourceNSArray as! [TISInputSource]
-
-    return inputSourceList
-      .filter {
-        $0.category == TISInputSource.Category.keyboardInputSource && $0.isSelectable
-    }.map {
-      InputSource(tisInputSource: $0)
-    }
-  }
-}
-
-private extension URL {
-  var retinaImageURL: URL {
-    var components = pathComponents
-    let filename: String = components.removeLast()
-    let ext: String = pathExtension
-    let retinaFilename = filename.replacingOccurrences(of: "." + ext, with: "@2x." + ext)
-    return NSURL.fileURL(withPathComponents: components + [retinaFilename])!
-  }
-
-  var tiffImageURL: URL {
-    return deletingPathExtension().appendingPathExtension("tiff")
+    return nil
   }
 }

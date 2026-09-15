@@ -4,22 +4,36 @@ import Cocoa
 class AppDelegate: NSObject, NSApplicationDelegate {
   let statusBar = StatusBar.shared
 
-  var justLaunched: Bool = true
+  private lazy var switchFeedback = SwitchFeedback(
+    notificationsEnabled: { PermanentStorage.showsNotification },
+    notifications: UserNotificationDelivery(),
+    status: statusBar
+  )
+  private lazy var services = AppServices(
+    store: ShortcutStore(),
+    registrar: MASShortcutRegistration(),
+    access: CarbonInputSourceAccess(),
+    feedback: switchFeedback
+  )
+  private lazy var launchCoordinator = AppLaunchCoordinator(
+    services: services,
+    isFirstLaunch: { PermanentStorage.launchedForTheFirstTime },
+    markFirstLaunchComplete: { PermanentStorage.launchedForTheFirstTime = false },
+    showPreferences: { [weak self] in self?.showPreferences() }
+  )
 
   func applicationDidFinishLaunching(_ aNotification: Notification) {
-    if PermanentStorage.launchedForTheFirstTime {
-      PermanentStorage.launchedForTheFirstTime = false
-    }
+    AppServices.shared = services
+    SwitchFeedback.shared = switchFeedback
+    launchCoordinator.applicationDidFinishLaunching()
   }
 
   func applicationDidBecomeActive(_ notification: Notification) {
-    if !justLaunched || PermanentStorage.launchedForTheFirstTime {
-      showPreferences()
-    }
+    launchCoordinator.applicationDidBecomeActive()
+  }
 
-    if justLaunched {
-      justLaunched = false
-    }
+  func applicationWillTerminate(_ notification: Notification) {
+    launchCoordinator.applicationWillTerminate()
   }
 
   @IBAction func showPreferences(_ sender: AnyObject? = nil) {

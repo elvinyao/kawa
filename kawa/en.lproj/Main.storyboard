@@ -91,7 +91,7 @@
         <scene sceneID="FYq-vW-QWk">
             <objects>
                 <windowController storyboardIdentifier="MainWindow" id="2BU-NJ-sy0" customClass="MainWindowController" customModule="Kawa" customModuleProvider="target" sceneMemberID="viewController">
-                    <window key="window" title="Kawa" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="gw6-0r-b0T">
+                    <window key="window" title="Kawa Test Build" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="gw6-0r-b0T">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
                         <rect key="contentRect" x="163" y="199" width="480" height="270"/>
                         <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
@@ -186,9 +186,13 @@
         <scene sceneID="lOC-jq-WBP">
             <objects>
                 <viewController id="WK9-v7-Mix" customClass="ShortcutViewController" customModule="Kawa" customModuleProvider="target" sceneMemberID="viewController">
-                    <scrollView key="view" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" autohidesScrollers="YES" horizontalLineScroll="22" horizontalPageScroll="10" verticalLineScroll="22" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="jSm-gI-Qdt">
+                    <view key="view" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" id="SRT-ROO-T01">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <subviews>
+                    <scrollView fixedFrame="YES" horizontalHuggingPriority="1000" verticalHuggingPriority="1000" autohidesScrollers="YES" horizontalLineScroll="22" horizontalPageScroll="10" verticalLineScroll="22" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jSm-gI-Qdt">
+                        <rect key="frame" x="0.0" y="68" width="450" height="232"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                         <clipView key="contentView" id="Z8E-xv-KLv">
                             <rect key="frame" x="1" y="0.0" width="448" height="299"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -286,6 +290,21 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </tableHeaderView>
                     </scrollView>
+                            <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="SRT-STA-T01">
+                                <rect key="frame" x="12" y="12" width="426" height="45"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <textFieldCell key="cell" controlSize="small" lineBreakMode="byWordWrapping" title="Status" id="SRT-STC-T01">
+                                    <font key="font" metaFont="smallSystem"/>
+                                    <color key="textColor" name="secondaryLabelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                        </subviews>
+                    </view>
+                    <connections>
+                        <outlet property="statusLabel" destination="SRT-STA-T01" id="SRT-OUT-T01"/>
+                        <outlet property="tableView" destination="biS-0R-WsE" id="SRT-OUT-T02"/>
+                    </connections>
                 </viewController>
                 <customObject id="iGh-Aw-zBQ" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
