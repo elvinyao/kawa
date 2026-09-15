@@ -8,8 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		AA1000012E70000100A00001 /* MASShortcutCompatibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1100012E70000100A00001 /* MASShortcutCompatibilityTests.swift */; };
+		AA2000012E70000200A00001 /* InputSourceSwitcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2100012E70000200A00001 /* InputSourceSwitcherTests.swift */; };
 		AA1000022E70000100A00001 /* MASShortcut in Frameworks */ = {isa = PBXBuildFile; productRef = AA1800012E70000100A00001 /* MASShortcut */; };
 		AA1000032E70000100A00001 /* MASShortcut in Frameworks */ = {isa = PBXBuildFile; productRef = AA1800022E70000100A00001 /* MASShortcut */; };
+		AA2000022E70000200A00001 /* InputTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2100022E70000200A00001 /* InputTarget.swift */; };
+		AA2000032E70000200A00001 /* InputTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2100022E70000200A00001 /* InputTarget.swift */; };
+		AA2000042E70000200A00001 /* InputSourceSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2100032E70000200A00001 /* InputSourceSwitcher.swift */; };
+		AA2000052E70000200A00001 /* InputSourceSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2100032E70000200A00001 /* InputSourceSwitcher.swift */; };
+		AA2000062E70000200A00001 /* CarbonInputSourceAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2100042E70000200A00001 /* CarbonInputSourceAccess.swift */; };
+		AA2000072E70000200A00001 /* CarbonInputSourceAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2100042E70000200A00001 /* CarbonInputSourceAccess.swift */; };
 		CC1FEF6F1B685FD3005E9BC8 /* ShortcutCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC1FEF6E1B685FD3005E9BC8 /* ShortcutCellView.swift */; };
 		CC4065BE1B6D334B000E1E87 /* PermanentStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4065BD1B6D334B000E1E87 /* PermanentStorage.swift */; };
 		CC4181681B6CB3CB007DA794 /* PreferencesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC4181671B6CB3CB007DA794 /* PreferencesViewController.swift */; };
@@ -25,7 +32,11 @@
 
 /* Begin PBXFileReference section */
 		AA1100012E70000100A00001 /* MASShortcutCompatibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MASShortcutCompatibilityTests.swift; sourceTree = "<group>"; };
+		AA2100012E70000200A00001 /* InputSourceSwitcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSourceSwitcherTests.swift; sourceTree = "<group>"; };
 		AA1100022E70000100A00001 /* kawaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kawaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA2100022E70000200A00001 /* InputTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputTarget.swift; sourceTree = "<group>"; };
+		AA2100032E70000200A00001 /* InputSourceSwitcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSourceSwitcher.swift; sourceTree = "<group>"; };
+		AA2100042E70000200A00001 /* CarbonInputSourceAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarbonInputSourceAccess.swift; sourceTree = "<group>"; };
 		CC1FEF6E1B685FD3005E9BC8 /* ShortcutCellView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ShortcutCellView.swift; sourceTree = "<group>"; };
 		CC4065BD1B6D334B000E1E87 /* PermanentStorage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PermanentStorage.swift; sourceTree = "<group>"; };
 		CC4181671B6CB3CB007DA794 /* PreferencesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PreferencesViewController.swift; sourceTree = "<group>"; };
@@ -65,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				AA1100012E70000100A00001 /* MASShortcutCompatibilityTests.swift */,
+				AA2100012E70000200A00001 /* InputSourceSwitcherTests.swift */,
 			);
 			path = kawaTests;
 			sourceTree = "<group>";
@@ -91,6 +103,9 @@
 			isa = PBXGroup;
 			children = (
 				CC6D8ECD1B654099005682C0 /* AppDelegate.swift */,
+				AA2100022E70000200A00001 /* InputTarget.swift */,
+				AA2100032E70000200A00001 /* InputSourceSwitcher.swift */,
+				AA2100042E70000200A00001 /* CarbonInputSourceAccess.swift */,
 				CC69E0791B6646B200A92F58 /* StatusBar.swift */,
 				CC4065BD1B6D334B000E1E87 /* PermanentStorage.swift */,
 				CC69E0751B663E1E00A92F58 /* MainWindowController.swift */,
@@ -214,6 +229,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				AA1000012E70000100A00001 /* MASShortcutCompatibilityTests.swift in Sources */,
+				AA2000012E70000200A00001 /* InputSourceSwitcherTests.swift in Sources */,
+				AA2000032E70000200A00001 /* InputTarget.swift in Sources */,
+				AA2000052E70000200A00001 /* InputSourceSwitcher.swift in Sources */,
+				AA2000072E70000200A00001 /* CarbonInputSourceAccess.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -221,6 +240,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA2000022E70000200A00001 /* InputTarget.swift in Sources */,
+				AA2000042E70000200A00001 /* InputSourceSwitcher.swift in Sources */,
+				AA2000062E70000200A00001 /* CarbonInputSourceAccess.swift in Sources */,
 				CC1FEF6F1B685FD3005E9BC8 /* ShortcutCellView.swift in Sources */,
 				CC4181681B6CB3CB007DA794 /* PreferencesViewController.swift in Sources */,
 				CC69E07A1B6646B200A92F58 /* StatusBar.swift in Sources */,
