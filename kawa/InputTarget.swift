@@ -123,13 +123,19 @@ enum InputSourceCatalog {
     let nameCounts = Dictionary(grouping: uniqueSources, by: \.localizedName).mapValues {
       $0.count
     }
-    return uniqueSources.map { source in
-      let title: String
+    let readableTitles = uniqueSources.map { source -> String in
       if nameCounts[source.localizedName, default: 0] > 1 {
-        title = "\(source.localizedName) — \(modeLabel(for: source))"
-      } else {
-        title = source.localizedName
+        return "\(source.localizedName) — \(modeLabel(for: source))"
       }
+      return source.localizedName
+    }
+    let titleCounts = Dictionary(grouping: readableTitles, by: { $0 }).mapValues {
+      $0.count
+    }
+    return zip(uniqueSources, readableTitles).map { source, readableTitle in
+      let title = titleCounts[readableTitle, default: 0] > 1
+        ? "\(readableTitle) — \(identityLabel(for: source))"
+        : readableTitle
       return InputTarget(
         sourceID: source.id,
         modeID: source.modeID,
@@ -154,5 +160,10 @@ enum InputSourceCatalog {
       return "Pinyin"
     }
     return modeID.split(separator: ".").last.map(String.init) ?? "Mode"
+  }
+
+  private static func identityLabel(for source: InputSourceInfo) -> String {
+    guard let modeID = source.modeID else { return source.id }
+    return "\(source.id) / \(modeID)"
   }
 }

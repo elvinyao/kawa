@@ -82,6 +82,31 @@ final class InputSourceCatalogTests: XCTestCase {
     XCTAssertEqual(targets.map(\.title), ["Japanese — Hiragana", "Japanese — Katakana"])
   }
 
+  func testDuplicateDefaultModeLabelsFallBackToSourceIdentity() {
+    let targets = InputSourceCatalog.targets(from: [
+      source(id: "org.example.first", name: "Example"),
+      source(id: "org.example.second", name: "Example")
+    ])
+
+    XCTAssertEqual(targets.map(\.title), [
+      "Example — Default — org.example.first",
+      "Example — Default — org.example.second"
+    ])
+  }
+
+  func testEqualReadableModeLabelsFallBackToFullSourceAndModeIdentity() {
+    let sourceID = "com.apple.inputmethod.Kotoeri.RomajiTyping"
+    let targets = InputSourceCatalog.targets(from: [
+      source(id: sourceID, modeID: "com.apple.inputmethod.Japanese", name: "Japanese"),
+      source(id: sourceID, modeID: "com.apple.inputmethod.Japanese.Hiragana", name: "Japanese")
+    ])
+
+    XCTAssertEqual(targets.map(\.title), [
+      "Japanese — Hiragana — \(sourceID) / com.apple.inputmethod.Japanese",
+      "Japanese — Hiragana — \(sourceID) / com.apple.inputmethod.Japanese.Hiragana"
+    ])
+  }
+
   func testIdentityAndStorageKeySurviveRenameAndReorder() {
     let original = InputSourceCatalog.targets(from: [
       source(id: "org.example.first", name: "Old Name"),

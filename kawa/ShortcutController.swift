@@ -283,7 +283,8 @@ final class ShortcutController {
       onError?(target, validationError)
       return
     }
-    if let conflictingTarget = earlierConflictingTarget(for: binding, target: target) {
+    if let conflictingTarget = registeredConflictingTarget(for: binding, excluding: target)
+      ?? earlierConflictingTarget(for: binding, target: target) {
       let error = ShortcutControllerError.duplicate(conflictingTarget)
       current.error = error
       states[target.storageKey] = current
@@ -320,7 +321,8 @@ final class ShortcutController {
       let current = state(for: target)
       guard current.registered == nil, let binding = current.desired else { continue }
       guard binding.validationError == nil else { continue }
-      if let conflictingTarget = earlierConflictingTarget(for: binding, target: target) {
+      if let conflictingTarget = registeredConflictingTarget(for: binding, excluding: target)
+        ?? earlierConflictingTarget(for: binding, target: target) {
         report(.duplicate(conflictingTarget), for: target)
       } else {
         registerRestored(binding, for: target)
@@ -334,6 +336,15 @@ final class ShortcutController {
   ) -> InputTarget? {
     targets.first {
       $0 != excludedTarget && state(for: $0).desired?.normalized == binding.normalized
+    }
+  }
+
+  private func registeredConflictingTarget(
+    for binding: ShortcutBinding,
+    excluding excludedTarget: InputTarget
+  ) -> InputTarget? {
+    targets.first {
+      $0 != excludedTarget && state(for: $0).registered?.normalized == binding.normalized
     }
   }
 

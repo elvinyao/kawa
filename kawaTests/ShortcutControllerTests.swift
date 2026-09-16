@@ -539,6 +539,94 @@ final class ShortcutControllerTests: XCTestCase {
     XCTAssertEqual(controller.targets, [second, first])
   }
 
+  func testReorderPreservesRegisteredOwnerOfDuplicatePersistedBinding() {
+    let first = InputTarget(sourceID: "org.example.first", title: "First")
+    let second = InputTarget(sourceID: "org.example.second", title: "Second")
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    let registrar = FakeShortcutRegistrar()
+    let controller = ShortcutController(
+      targets: [first, second],
+      store: FakeShortcutStore([first: binding, second: binding]),
+      registrar: registrar,
+      onTrigger: { _ in }
+    )
+    controller.start()
+    registrar.resetOperations()
+
+    controller.updateTargets([second, first])
+
+    XCTAssertEqual(registrar.operations, [])
+    XCTAssertEqual(controller.error(for: second), .duplicate(first))
+    XCTAssertEqual(controller.error(for: first), nil)
+  }
+
+  func testReaddingDuplicateBeforeActiveOwnerDoesNotAttemptRegistration() {
+    let first = InputTarget(sourceID: "org.example.first", title: "First")
+    let second = InputTarget(sourceID: "org.example.second", title: "Second")
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    let registrar = FakeShortcutRegistrar()
+    let controller = ShortcutController(
+      targets: [first, second],
+      store: FakeShortcutStore([first: binding, second: binding]),
+      registrar: registrar,
+      onTrigger: { _ in }
+    )
+    controller.start()
+    controller.updateTargets([first])
+    registrar.resetOperations()
+
+    controller.updateTargets([second, first])
+
+    XCTAssertEqual(registrar.operations, [])
+    XCTAssertEqual(controller.error(for: second), .duplicate(first))
+  }
+
+  func testRepeatedDuplicateRefreshDoesNotAttemptRegistration() {
+    let first = InputTarget(sourceID: "org.example.first", title: "First")
+    let second = InputTarget(sourceID: "org.example.second", title: "Second")
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    let registrar = FakeShortcutRegistrar()
+    let controller = ShortcutController(
+      targets: [first, second],
+      store: FakeShortcutStore([first: binding, second: binding]),
+      registrar: registrar,
+      onTrigger: { _ in }
+    )
+    controller.start()
+    controller.updateTargets([second, first])
+    registrar.resetOperations()
+
+    controller.updateTargets([second, first])
+    controller.updateTargets([second, first])
+
+    XCTAssertEqual(registrar.operations, [])
+    XCTAssertEqual(controller.error(for: second), .duplicate(first))
+  }
+
+  func testClearingRegisteredOwnerAfterReorderRecoversPendingDuplicate() {
+    let first = InputTarget(sourceID: "org.example.first", title: "First")
+    let second = InputTarget(sourceID: "org.example.second", title: "Second")
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    let registrar = FakeShortcutRegistrar()
+    var triggered: [InputTarget] = []
+    let controller = ShortcutController(
+      targets: [first, second],
+      store: FakeShortcutStore([first: binding, second: binding]),
+      registrar: registrar,
+      onTrigger: { triggered.append($0) }
+    )
+    controller.start()
+    controller.updateTargets([second, first])
+    registrar.resetOperations()
+
+    _ = controller.setBinding(nil, for: first)
+    registrar.trigger(binding)
+
+    XCTAssertEqual(registrar.operations, [.unregister(binding), .register(binding)])
+    XCTAssertEqual(controller.error(for: second), nil)
+    XCTAssertEqual(triggered, [second])
+  }
+
   func testRemovedTargetRejectsEditsAndQueuedTrigger() {
     let target = InputTarget(sourceID: "org.example.layout", title: "Example")
     let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
