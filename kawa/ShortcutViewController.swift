@@ -117,9 +117,9 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
   }
 
   private func refresh(target: InputTarget) {
-    guard let row = targets.firstIndex(of: target) else { return }
     DispatchQueue.main.async { [weak self] in
-      guard let self = self else { return }
+      guard let self = self,
+            let row = self.targets.firstIndex(of: target) else { return }
       let shortcutColumn = self.tableView.column(withIdentifier: NSUserInterfaceItemIdentifier("Shortcut"))
       if shortcutColumn >= 0 {
         (self.tableView.view(

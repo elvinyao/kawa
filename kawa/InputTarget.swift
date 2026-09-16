@@ -104,29 +104,55 @@ struct InputTarget: Hashable {
 
 enum InputSourceCatalog {
   static func targets(from sources: [InputSourceInfo]) -> [InputTarget] {
-    var seen = Set<InputTarget>()
-    var targets: [InputTarget] = []
+    var seenIdentities = Set<InputTarget>()
+    var uniqueSources: [InputSourceInfo] = []
 
     for source in sources where source.isEnabled && source.isSelectable && source.isKeyboard {
+      let identity = InputTarget(
+        sourceID: source.id,
+        modeID: source.modeID,
+        bundleID: source.bundleID,
+        title: source.localizedName,
+        iconURL: source.iconURL
+      )
+      if seenIdentities.insert(identity).inserted {
+        uniqueSources.append(source)
+      }
+    }
+
+    let nameCounts = Dictionary(grouping: uniqueSources, by: \.localizedName).mapValues {
+      $0.count
+    }
+    return uniqueSources.map { source in
       let title: String
-      if let modeID = source.modeID {
-        let modeName = modeID.split(separator: ".").last.map(String.init) ?? modeID
-        title = "\(source.localizedName) — \(modeName)"
+      if nameCounts[source.localizedName, default: 0] > 1 {
+        title = "\(source.localizedName) — \(modeLabel(for: source))"
       } else {
         title = source.localizedName
       }
-      let target = InputTarget(
+      return InputTarget(
         sourceID: source.id,
         modeID: source.modeID,
         bundleID: source.bundleID,
         title: title,
         iconURL: source.iconURL
       )
-      if seen.insert(target).inserted {
-        targets.append(target)
-      }
     }
+  }
 
-    return targets
+  private static func modeLabel(for source: InputSourceInfo) -> String {
+    guard let modeID = source.modeID else { return "Default" }
+    let appleJapanese = source.id.hasPrefix("com.apple.inputmethod.Kotoeri.")
+      || source.bundleID == "com.apple.inputmethod.Kotoeri"
+      || source.bundleID?.hasPrefix("com.apple.inputmethod.Kotoeri.") == true
+      || source.bundleID == "com.apple.JapaneseIM"
+      || source.bundleID?.hasPrefix("com.apple.JapaneseIM.") == true
+    if modeID == "com.apple.inputmethod.Japanese", appleJapanese {
+      return "Hiragana"
+    }
+    if modeID == "com.apple.inputmethod.SCIM.ITABC" {
+      return "Pinyin"
+    }
+    return modeID.split(separator: ".").last.map(String.init) ?? "Mode"
   }
 }

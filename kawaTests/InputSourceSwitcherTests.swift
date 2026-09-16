@@ -34,7 +34,24 @@ final class InputSourceCatalogTests: XCTestCase {
     ])
 
     XCTAssertEqual(targets.count, 1)
-    XCTAssertEqual(targets.first?.title, "First — one")
+    XCTAssertEqual(targets.first?.title, "First")
+  }
+
+  func testUniqueLocalizedModeNamesRemainVerbatim() {
+    let targets = InputSourceCatalog.targets(from: [
+      source(
+        id: "com.apple.inputmethod.SCIM.ITABC",
+        modeID: "com.apple.inputmethod.SCIM.ITABC",
+        name: "拼音 – 簡体字"
+      ),
+      source(
+        id: "com.apple.inputmethod.Kotoeri.RomajiTyping",
+        modeID: "com.apple.inputmethod.Japanese",
+        name: "日本語 – ローマ字入力"
+      )
+    ])
+
+    XCTAssertEqual(targets.map(\.title), ["拼音 – 簡体字", "日本語 – ローマ字入力"])
   }
 
   func testDistinctModesProduceDistinctTargetsAndExplicitTitles() {
@@ -46,6 +63,23 @@ final class InputSourceCatalogTests: XCTestCase {
     XCTAssertEqual(targets.count, 2)
     XCTAssertNotEqual(targets[0], targets[1])
     XCTAssertEqual(targets.map(\.title), ["Example IME — Hiragana", "Example IME — Katakana"])
+  }
+
+  func testDuplicateJapaneseNamesIdentifyNormalConversionModeAsHiragana() {
+    let targets = InputSourceCatalog.targets(from: [
+      source(
+        id: "com.apple.inputmethod.Kotoeri.RomajiTyping",
+        modeID: "com.apple.inputmethod.Japanese",
+        name: "Japanese"
+      ),
+      source(
+        id: "com.apple.inputmethod.Kotoeri.RomajiTyping",
+        modeID: "com.apple.inputmethod.Japanese.Katakana",
+        name: "Japanese"
+      )
+    ])
+
+    XCTAssertEqual(targets.map(\.title), ["Japanese — Hiragana", "Japanese — Katakana"])
   }
 
   func testIdentityAndStorageKeySurviveRenameAndReorder() {
