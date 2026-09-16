@@ -107,6 +107,20 @@ final class InputSourceCatalogTests: XCTestCase {
     ])
   }
 
+  func testGeneratedModeLabelDoesNotDisambiguateUniqueLocalizedName() {
+    let targets = InputSourceCatalog.targets(from: [
+      source(id: "org.example.foo", modeID: "org.example.Foo", name: "Example"),
+      source(id: "org.example.bar", modeID: "org.example.Bar", name: "Example"),
+      source(id: "org.example.literal", name: "Example — Foo")
+    ])
+
+    XCTAssertEqual(targets.map(\.title), [
+      "Example — Foo — org.example.foo / org.example.Foo",
+      "Example — Bar",
+      "Example — Foo"
+    ])
+  }
+
   func testIdentityAndStorageKeySurviveRenameAndReorder() {
     let original = InputSourceCatalog.targets(from: [
       source(id: "org.example.first", name: "Old Name"),

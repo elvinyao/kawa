@@ -123,19 +123,36 @@ enum InputSourceCatalog {
     let nameCounts = Dictionary(grouping: uniqueSources, by: \.localizedName).mapValues {
       $0.count
     }
-    let readableTitles = uniqueSources.map { source -> String in
-      if nameCounts[source.localizedName, default: 0] > 1 {
-        return "\(source.localizedName) — \(modeLabel(for: source))"
-      }
-      return source.localizedName
+    let reservedTitles = Set(uniqueSources.compactMap { source -> String? in
+      nameCounts[source.localizedName, default: 0] == 1 ? source.localizedName : nil
+    })
+    let generatedTitles = uniqueSources.compactMap { source -> String? in
+      guard nameCounts[source.localizedName, default: 0] > 1 else { return nil }
+      return "\(source.localizedName) — \(modeLabel(for: source))"
     }
-    let titleCounts = Dictionary(grouping: readableTitles, by: { $0 }).mapValues {
+    let generatedTitleCounts = Dictionary(grouping: generatedTitles, by: { $0 }).mapValues {
       $0.count
     }
-    return zip(uniqueSources, readableTitles).map { source, readableTitle in
-      let title = titleCounts[readableTitle, default: 0] > 1
-        ? "\(readableTitle) — \(identityLabel(for: source))"
-        : readableTitle
+    var occupiedTitles = reservedTitles
+    let titles = uniqueSources.map { source -> String in
+      guard nameCounts[source.localizedName, default: 0] > 1 else {
+        return source.localizedName
+      }
+
+      let readableTitle = "\(source.localizedName) — \(modeLabel(for: source))"
+      let identitySuffix = " — \(identityLabel(for: source))"
+      var title = readableTitle
+      if generatedTitleCounts[readableTitle, default: 0] > 1
+        || occupiedTitles.contains(title) {
+        title += identitySuffix
+      }
+      while occupiedTitles.contains(title) {
+        title += identitySuffix
+      }
+      occupiedTitles.insert(title)
+      return title
+    }
+    return zip(uniqueSources, titles).map { source, title in
       return InputTarget(
         sourceID: source.id,
         modeID: source.modeID,
