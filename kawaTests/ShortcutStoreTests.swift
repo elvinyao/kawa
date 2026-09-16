@@ -102,6 +102,76 @@ final class ShortcutStoreTests: XCTestCase {
     XCTAssertEqual(ShortcutStore(defaults: defaults).binding(for: appleVariant), binding)
   }
 
+  func testMigratesFixedHiraganaBindingForJapaneseIMBundleFamily() throws {
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    defaults.set(try legacyArchive(binding), forKey: "shortcut.hiragana")
+    let japaneseIMTarget = InputTarget(
+      sourceID: "com.apple.JapaneseIM.RomajiTyping",
+      modeID: "com.apple.inputmethod.Japanese",
+      bundleID: "com.apple.JapaneseIM.RomajiTyping",
+      title: "Hiragana"
+    )
+
+    XCTAssertEqual(ShortcutStore(defaults: defaults).binding(for: japaneseIMTarget), binding)
+    XCTAssertNotNil(defaults.object(forKey: japaneseIMTarget.storageKey))
+  }
+
+  func testJapaneseIMBundleProvenanceDoesNotRequireSourcePrefix() throws {
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    defaults.set(try legacyArchive(binding), forKey: "shortcut.hiragana")
+    let japaneseIMTarget = InputTarget(
+      sourceID: "org.example.system-assigned-source",
+      modeID: "com.apple.inputmethod.Japanese",
+      bundleID: "com.apple.JapaneseIM.RomajiTyping",
+      title: "Hiragana"
+    )
+
+    XCTAssertEqual(ShortcutStore(defaults: defaults).binding(for: japaneseIMTarget), binding)
+  }
+
+  func testJapaneseIMFixedHiraganaTombstoneWinsOverOriginalArchive() throws {
+    let japaneseIMTarget = InputTarget(
+      sourceID: "com.apple.JapaneseIM.RomajiTyping",
+      modeID: "com.apple.inputmethod.Japanese",
+      bundleID: "com.apple.JapaneseIM.RomajiTyping",
+      title: "Hiragana"
+    )
+    defaults.set(Data(), forKey: "shortcut.hiragana")
+    defaults.set(
+      try legacyArchive(ShortcutBinding(keyCode: 20, modifierFlags: command)),
+      forKey: "com-apple-JapaneseIM-RomajiTyping"
+    )
+
+    XCTAssertNil(ShortcutStore(defaults: defaults).binding(for: japaneseIMTarget))
+    XCTAssertEqual(defaults.data(forKey: japaneseIMTarget.storageKey), Data())
+  }
+
+  func testDeceptiveJapaneseIMFamilyDoesNotClaimFixedHiraganaAlias() throws {
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    defaults.set(try legacyArchive(binding), forKey: "shortcut.hiragana")
+    let deceptive = InputTarget(
+      sourceID: "com.apple.JapaneseIM.RomajiTyping",
+      modeID: "com.apple.inputmethod.Japanese",
+      bundleID: "com.apple.JapaneseIMFake.RomajiTyping",
+      title: "Deceptive"
+    )
+
+    XCTAssertNil(ShortcutStore(defaults: defaults).binding(for: deceptive))
+  }
+
+  func testJapaneseIMWrongModeDoesNotClaimFixedHiraganaAlias() throws {
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    defaults.set(try legacyArchive(binding), forKey: "shortcut.hiragana")
+    let katakana = InputTarget(
+      sourceID: "com.apple.JapaneseIM.RomajiTyping",
+      modeID: "com.apple.inputmethod.Japanese.Katakana",
+      bundleID: "com.apple.JapaneseIM.RomajiTyping",
+      title: "Katakana"
+    )
+
+    XCTAssertNil(ShortcutStore(defaults: defaults).binding(for: katakana))
+  }
+
   func testDeceptivePinyinBundlePrefixDoesNotClaimFixedPresetAlias() throws {
     let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
     defaults.set(try legacyArchive(binding), forKey: "shortcut.pinyin")

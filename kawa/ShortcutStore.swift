@@ -94,12 +94,17 @@ final class ShortcutStore: ShortcutPersisting {
   }
 
   private func isHiraganaPreset(_ target: InputTarget) -> Bool {
-    guard target.sourceID.hasPrefix("com.apple.inputmethod.Kotoeri."),
-          target.modeID == "com.apple.inputmethod.Japanese" else { return false }
-    return target.bundleID == nil
-      || target.bundleID == "com.apple.inputmethod.Kotoeri"
-      || target.bundleID?.hasPrefix("com.apple.inputmethod.Kotoeri.") == true
-      || target.bundleID == "com.apple.JapaneseIM"
-      || target.bundleID?.hasPrefix("com.apple.JapaneseIM.") == true
+    guard target.modeID == "com.apple.inputmethod.Japanese" else { return false }
+    if let bundleID = target.bundleID {
+      return isAppleJapaneseFamily(bundleID)
+    }
+    return isAppleJapaneseFamily(target.sourceID)
+  }
+
+  private func isAppleJapaneseFamily(_ identifier: String) -> Bool {
+    identifier == "com.apple.inputmethod.Kotoeri"
+      || identifier.hasPrefix("com.apple.inputmethod.Kotoeri.")
+      || identifier == "com.apple.JapaneseIM"
+      || identifier.hasPrefix("com.apple.JapaneseIM.")
   }
 }
