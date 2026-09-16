@@ -1,14 +1,99 @@
 import Foundation
 import XCTest
 
+final class InputSourceCatalogTests: XCTestCase {
+  func testDiscoversFourthPartyKeyboardSourceWithoutFixedPresetRows() {
+    let sources = [
+      source(id: "com.apple.keylayout.ABC", name: "ABC"),
+      source(id: "com.apple.inputmethod.SCIM.ITABC", modeID: "com.apple.inputmethod.SCIM.ITABC", name: "Pinyin"),
+      source(id: "com.apple.inputmethod.Kotoeri.RomajiTyping", modeID: "com.apple.inputmethod.Japanese", name: "Japanese"),
+      source(id: "org.example.inputmethod.Colemak", name: "Colemak")
+    ]
+
+    let targets = InputSourceCatalog.targets(from: sources)
+
+    XCTAssertEqual(targets.map(\.sourceID), sources.map(\.id))
+    XCTAssertEqual(targets.last?.title, "Colemak")
+  }
+
+  func testFiltersDisabledUnselectableAndNonKeyboardSources() {
+    let targets = InputSourceCatalog.targets(from: [
+      source(id: "enabled", name: "Enabled"),
+      source(id: "disabled", name: "Disabled", isEnabled: false),
+      source(id: "unselectable", name: "Unselectable", isSelectable: false),
+      source(id: "palette", name: "Palette", isKeyboard: false)
+    ])
+
+    XCTAssertEqual(targets.map(\.sourceID), ["enabled"])
+  }
+
+  func testDuplicateDescriptorsKeepFirstOccurrenceDeterministically() {
+    let targets = InputSourceCatalog.targets(from: [
+      source(id: "org.example.source", modeID: "mode.one", name: "First"),
+      source(id: "org.example.source", modeID: "mode.one", name: "Second")
+    ])
+
+    XCTAssertEqual(targets.count, 1)
+    XCTAssertEqual(targets.first?.title, "First — one")
+  }
+
+  func testDistinctModesProduceDistinctTargetsAndExplicitTitles() {
+    let targets = InputSourceCatalog.targets(from: [
+      source(id: "org.example.ime", modeID: "org.example.ime.Hiragana", name: "Example IME"),
+      source(id: "org.example.ime", modeID: "org.example.ime.Katakana", name: "Example IME")
+    ])
+
+    XCTAssertEqual(targets.count, 2)
+    XCTAssertNotEqual(targets[0], targets[1])
+    XCTAssertEqual(targets.map(\.title), ["Example IME — Hiragana", "Example IME — Katakana"])
+  }
+
+  func testIdentityAndStorageKeySurviveRenameAndReorder() {
+    let original = InputSourceCatalog.targets(from: [
+      source(id: "org.example.first", name: "Old Name"),
+      source(id: "org.example.ime", modeID: "org.example.mode", name: "IME")
+    ])
+    let refreshed = InputSourceCatalog.targets(from: [
+      source(id: "org.example.ime", modeID: "org.example.mode", name: "Renamed IME"),
+      source(id: "org.example.first", name: "New Name")
+    ])
+
+    XCTAssertEqual(original[0], refreshed[1])
+    XCTAssertEqual(original[0].storageKey, refreshed[1].storageKey)
+    XCTAssertEqual(original[1], refreshed[0])
+    XCTAssertEqual(original[1].storageKey, refreshed[0].storageKey)
+    XCTAssertTrue(original[0].storageKey.hasPrefix("shortcut.v2."))
+    XCTAssertNotEqual(original[0].storageKey, original[1].storageKey)
+  }
+
+  private func source(
+    id: String,
+    modeID: String? = nil,
+    name: String,
+    isEnabled: Bool = true,
+    isSelectable: Bool = true,
+    isKeyboard: Bool = true
+  ) -> InputSourceInfo {
+    InputSourceInfo(
+      id: id,
+      modeID: modeID,
+      bundleID: nil,
+      isEnabled: isEnabled,
+      isSelectable: isSelectable,
+      isKeyboard: isKeyboard,
+      localizedName: name
+    )
+  }
+}
+
 final class InputTargetTests: XCTestCase {
   func testTitlesAndStorageKeysAreStable() {
     XCTAssertEqual(InputTarget.pinyin.title, "Apple Pinyin")
-    XCTAssertEqual(InputTarget.pinyin.storageKey, "shortcut.pinyin")
+    XCTAssertTrue(InputTarget.pinyin.storageKey.hasPrefix("shortcut.v2."))
     XCTAssertEqual(InputTarget.hiragana.title, "Japanese Hiragana")
-    XCTAssertEqual(InputTarget.hiragana.storageKey, "shortcut.hiragana")
+    XCTAssertTrue(InputTarget.hiragana.storageKey.hasPrefix("shortcut.v2."))
     XCTAssertEqual(InputTarget.abc.title, "ABC")
-    XCTAssertEqual(InputTarget.abc.storageKey, "shortcut.abc")
+    XCTAssertTrue(InputTarget.abc.storageKey.hasPrefix("shortcut.v2."))
   }
 
   func testABCMatchesOnlyExactAppleSourceID() {

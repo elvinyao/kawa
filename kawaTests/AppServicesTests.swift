@@ -27,7 +27,7 @@ final class AppServicesTests: XCTestCase {
     XCTAssertEqual(feedback.failures.count, 0)
   }
 
-  func testSwitchFailureNeverProducesSuccessFeedback() {
+  func testAbsentSourceDoesNotCreateOrTriggerFixedPresetRow() {
     let binding = ShortcutBinding(keyCode: 18, modifierFlags: command)
     let registrar = IntegrationShortcutRegistrar()
     let feedback = RecordingSwitchFeedback()
@@ -42,8 +42,8 @@ final class AppServicesTests: XCTestCase {
     registrar.trigger(binding)
 
     XCTAssertEqual(feedback.successes.count, 0)
-    XCTAssertEqual(feedback.failures.map(\.0), [.pinyin])
-    XCTAssertEqual(feedback.failures.map(\.1), [.unavailable(.pinyin)])
+    XCTAssertEqual(feedback.failures.count, 0)
+    XCTAssertEqual(registrar.activeBindings, [])
   }
 
   func testQueuedOldHotkeyDoesNothingAfterReplacementClearAndStop() {
@@ -130,6 +130,92 @@ final class AppServicesTests: XCTestCase {
 
     XCTAssertEqual(notifications.deliveredTitles, [])
   }
+
+  func testStartUsesDiscoveredThirdPartyTargetsAndPublishesCatalog() {
+    let target = InputTarget(sourceID: "org.example.layout", title: "Example")
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    let registrar = IntegrationShortcutRegistrar()
+    let access = IntegrationInputSourceAccess(sources: [
+      InputSourceInfo(
+        id: target.sourceID,
+        modeID: nil,
+        bundleID: "org.example",
+        isEnabled: true,
+        isSelectable: true,
+        localizedName: "Example"
+      )
+    ])
+    access.onSelect = { access.currentSource = access.availableSources[0] }
+    let catalog = FakeInputSourceCatalog([target])
+    let services = AppServices(
+      store: IntegrationShortcutStore([target: binding]),
+      registrar: registrar,
+      access: access,
+      catalog: catalog,
+      feedback: RecordingSwitchFeedback()
+    )
+
+    services.start()
+    registrar.trigger(binding)
+
+    XCTAssertEqual(services.targets, [target])
+    XCTAssertEqual(access.selectionRequests.map(\.id), [target.sourceID])
+    XCTAssertEqual(catalog.startCount, 1)
+  }
+
+  func testEnabledSourceNotificationReconcilesTargetsAndStopsCleanly() {
+    let first = InputTarget(sourceID: "org.example.first", title: "First")
+    let second = InputTarget(sourceID: "org.example.second", title: "Second")
+    let catalog = FakeInputSourceCatalog([first])
+    let services = AppServices(
+      store: IntegrationShortcutStore(),
+      registrar: IntegrationShortcutRegistrar(),
+      access: IntegrationInputSourceAccess(sources: []),
+      catalog: catalog,
+      feedback: RecordingSwitchFeedback()
+    )
+    var updates: [[InputTarget]] = []
+    services.onTargetsChanged = { updates.append($0) }
+    services.start()
+
+    catalog.availableTargets = [first, second]
+    catalog.sendChange()
+    services.stop()
+    catalog.availableTargets = []
+    catalog.sendChange()
+
+    XCTAssertEqual(services.targets, [first, second])
+    XCTAssertEqual(updates.last, [first, second])
+    XCTAssertEqual(catalog.stopCount, 1)
+  }
+
+  func testRemovingTargetSuppressesPendingSwitchFeedback() {
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    let registrar = IntegrationShortcutRegistrar()
+    let access = IntegrationInputSourceAccess(sources: [.pinyin], current: .abc)
+    let catalog = FakeInputSourceCatalog([.pinyin])
+    let scheduler = IntegrationQueuedScheduler()
+    let feedback = RecordingSwitchFeedback()
+    let services = AppServices(
+      store: IntegrationShortcutStore([.pinyin: binding]),
+      registrar: registrar,
+      access: access,
+      catalog: catalog,
+      schedule: scheduler.schedule,
+      feedback: feedback
+    )
+    services.start()
+    registrar.trigger(binding)
+
+    catalog.availableTargets = []
+    catalog.sendChange()
+    access.currentSource = .pinyin
+    scheduler.runNext()
+
+    XCTAssertEqual(feedback.successes.count, 0)
+    XCTAssertEqual(feedback.failures.count, 0)
+    XCTAssertEqual(registrar.activeBindings, [])
+  }
 }
 
 final class AppLaunchCoordinatorTests: XCTestCase {
@@ -202,6 +288,21 @@ final class AppLaunchCoordinatorTests: XCTestCase {
     coordinator.applicationDidBecomeActive()
 
     XCTAssertEqual(events, ["start"])
+  }
+
+  func testActivationAfterLaunchRefreshesInputSources() {
+    var refreshCount = 0
+    let coordinator = AppLaunchCoordinator(
+      services: RecordingServiceLifecycle(onRefresh: { refreshCount += 1 }),
+      isFirstLaunch: { false },
+      markFirstLaunchComplete: {},
+      showPreferences: {}
+    )
+
+    coordinator.applicationDidFinishLaunching()
+    coordinator.applicationDidBecomeActive()
+
+    XCTAssertEqual(refreshCount, 1)
   }
 
   func testApplicationReopenShowsPreferencesAfterLaunch() {
@@ -461,14 +562,48 @@ final class SwitchFeedbackTests: XCTestCase {
 private final class RecordingServiceLifecycle: AppServiceLifecycle {
   private let onStart: () -> Void
   private let onStop: () -> Void
+  private let onRefresh: () -> Void
 
-  init(onStart: @escaping () -> Void = {}, onStop: @escaping () -> Void = {}) {
+  init(
+    onStart: @escaping () -> Void = {},
+    onStop: @escaping () -> Void = {},
+    onRefresh: @escaping () -> Void = {}
+  ) {
     self.onStart = onStart
     self.onStop = onStop
+    self.onRefresh = onRefresh
   }
 
   func start() { onStart() }
   func stop() { onStop() }
+  func refreshInputSources() { onRefresh() }
+}
+
+private final class FakeInputSourceCatalog: InputSourceCataloging {
+  var availableTargets: [InputTarget]
+  private var onChange: (() -> Void)?
+  private(set) var startCount = 0
+  private(set) var stopCount = 0
+
+  init(_ targets: [InputTarget]) {
+    availableTargets = targets
+  }
+
+  func targets() -> [InputTarget] { availableTargets }
+
+  func startObserving(_ onChange: @escaping () -> Void) {
+    startCount += 1
+    self.onChange = onChange
+  }
+
+  func stopObserving() {
+    stopCount += 1
+    onChange = nil
+  }
+
+  func sendChange() {
+    onChange?()
+  }
 }
 
 private final class RecordingSwitchFeedback: SwitchFeedbackReporting {
@@ -557,6 +692,10 @@ private final class IntegrationShortcutStore: ShortcutPersisting {
 private final class IntegrationShortcutRegistrar: ShortcutRegistering {
   private var active: [ShortcutBinding: () -> Void] = [:]
   private var history: [ShortcutBinding: [() -> Void]] = [:]
+
+  var activeBindings: [ShortcutBinding] {
+    Array(active.keys)
+  }
 
   func register(_ binding: ShortcutBinding, action: @escaping () -> Void) -> Bool {
     guard active[binding] == nil else { return false }

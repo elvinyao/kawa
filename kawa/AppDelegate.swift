@@ -36,6 +36,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     return true
   }
 
+  func applicationDidBecomeActive(_ notification: Notification) {
+    launchCoordinator.applicationDidBecomeActive()
+  }
+
   func applicationWillTerminate(_ notification: Notification) {
     launchCoordinator.applicationWillTerminate()
   }

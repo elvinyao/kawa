@@ -54,6 +54,89 @@ final class ShortcutStoreTests: XCTestCase {
     XCTAssertNotNil(defaults.object(forKey: InputTarget.pinyin.storageKey))
   }
 
+  func testMigratesOriginalDotToHyphenKeyForArbitrarySource() throws {
+    let target = InputTarget(
+      sourceID: "org.example.input-method",
+      modeID: "org.example.mode",
+      title: "Example"
+    )
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    defaults.set(try legacyArchive(binding), forKey: "org-example-input-method")
+
+    XCTAssertEqual(ShortcutStore(defaults: defaults).binding(for: target), binding)
+    XCTAssertNotNil(defaults.object(forKey: target.storageKey))
+    XCTAssertNotNil(defaults.object(forKey: "org-example-input-method"))
+  }
+
+  func testCanonicalKeysDoNotCollideForSourceAndModeBoundaries() {
+    let first = InputTarget(sourceID: "a", modeID: "b.c", title: "First")
+    let second = InputTarget(sourceID: "a.b", modeID: "c", title: "Second")
+
+    XCTAssertNotEqual(first.storageKey, second.storageKey)
+  }
+
+  func testMigratesFixedEditionKeyOnlyForExactApplePreset() throws {
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    defaults.set(try legacyArchive(binding), forKey: "shortcut.hiragana")
+    let thirdParty = InputTarget(
+      sourceID: "org.example.japanese",
+      modeID: "com.apple.inputmethod.Japanese",
+      bundleID: "org.example",
+      title: "Third Party"
+    )
+
+    XCTAssertEqual(ShortcutStore(defaults: defaults).binding(for: .hiragana), binding)
+    XCTAssertNil(ShortcutStore(defaults: defaults).binding(for: thirdParty))
+  }
+
+  func testMigratesFixedHiraganaKeyForAppleKotoeriNormalModeVariant() throws {
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    defaults.set(try legacyArchive(binding), forKey: "shortcut.hiragana")
+    let appleVariant = InputTarget(
+      sourceID: "com.apple.inputmethod.Kotoeri.Japanese",
+      modeID: "com.apple.inputmethod.Japanese",
+      bundleID: "com.apple.inputmethod.Kotoeri.Japanese",
+      title: "Hiragana"
+    )
+
+    XCTAssertEqual(ShortcutStore(defaults: defaults).binding(for: appleVariant), binding)
+  }
+
+  func testDeceptivePinyinBundlePrefixDoesNotClaimFixedPresetAlias() throws {
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    defaults.set(try legacyArchive(binding), forKey: "shortcut.pinyin")
+    let deceptive = InputTarget(
+      sourceID: "com.apple.inputmethod.SCIM.ITABC",
+      modeID: "com.apple.inputmethod.SCIM.ITABC",
+      bundleID: "com.apple.inputmethod.SCIMFake",
+      title: "Deceptive"
+    )
+
+    XCTAssertNil(ShortcutStore(defaults: defaults).binding(for: deceptive))
+  }
+
+  func testMigratesLegacyEmptyTombstoneWithoutResurrectingOlderValue() throws {
+    defaults.set(Data(), forKey: "shortcut.abc")
+    defaults.set(try legacyArchive(
+      ShortcutBinding(keyCode: 20, modifierFlags: command)
+    ), forKey: "com-apple-keylayout-ABC")
+
+    XCTAssertNil(ShortcutStore(defaults: defaults).binding(for: .abc))
+    XCTAssertNotNil(defaults.object(forKey: InputTarget.abc.storageKey))
+  }
+
+  func testExistingDynamicEmptyOrCorruptCanonicalWinsOverEveryLegacyValue() throws {
+    let target = InputTarget(sourceID: "org.example.layout", title: "Layout")
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    defaults.set(try legacyArchive(binding), forKey: "org-example-layout")
+
+    for canonical: Data in [Data(), Data([0x00, 0x01])] {
+      defaults.set(canonical, forKey: target.storageKey)
+      XCTAssertNil(ShortcutStore(defaults: defaults).binding(for: target))
+      XCTAssertEqual(defaults.data(forKey: target.storageKey), canonical)
+    }
+  }
+
   func testMigratesKnownLegacyKeysForEveryTarget() throws {
     let binding = ShortcutBinding(keyCode: 19, modifierFlags: command)
     let cases: [(InputTarget, String)] = [
@@ -67,6 +150,23 @@ final class ShortcutStoreTests: XCTestCase {
       defaults.removePersistentDomain(forName: suiteName)
       defaults.set(try legacyArchive(binding), forKey: legacyKey)
       XCTAssertEqual(ShortcutStore(defaults: defaults).binding(for: target), binding, legacyKey)
+    }
+  }
+
+  func testMigratesFixedEditionKeysForEveryApplePreset() throws {
+    let binding = ShortcutBinding(keyCode: 19, modifierFlags: command)
+    let cases: [(InputTarget, String)] = [
+      (.abc, "shortcut.abc"),
+      (.pinyin, "shortcut.pinyin"),
+      (.hiragana, "shortcut.hiragana")
+    ]
+
+    for (target, legacyKey) in cases {
+      defaults.removePersistentDomain(forName: suiteName)
+      defaults.set(try legacyArchive(binding), forKey: legacyKey)
+      XCTAssertEqual(ShortcutStore(defaults: defaults).binding(for: target), binding, legacyKey)
+      XCTAssertNotNil(defaults.object(forKey: legacyKey))
+      XCTAssertNotNil(defaults.object(forKey: target.storageKey))
     }
   }
 

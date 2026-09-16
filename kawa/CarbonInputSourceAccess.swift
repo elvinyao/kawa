@@ -1,6 +1,51 @@
 import Carbon
 import Foundation
 
+protocol InputSourceCataloging: AnyObject {
+  func targets() -> [InputTarget]
+  func startObserving(_ onChange: @escaping () -> Void)
+  func stopObserving()
+}
+
+final class SystemInputSourceCatalog: InputSourceCataloging {
+  private let access: InputSourceAccess
+  private let notificationCenter: DistributedNotificationCenter
+  private var observer: NSObjectProtocol?
+
+  init(
+    access: InputSourceAccess,
+    notificationCenter: DistributedNotificationCenter = .default()
+  ) {
+    self.access = access
+    self.notificationCenter = notificationCenter
+  }
+
+  func targets() -> [InputTarget] {
+    InputSourceCatalog.targets(from: access.sources())
+  }
+
+  func startObserving(_ onChange: @escaping () -> Void) {
+    stopObserving()
+    observer = notificationCenter.addObserver(
+      forName: Notification.Name(kTISNotifyEnabledKeyboardInputSourcesChanged as String),
+      object: nil,
+      queue: .main
+    ) { _ in
+      onChange()
+    }
+  }
+
+  func stopObserving() {
+    guard let observer = observer else { return }
+    notificationCenter.removeObserver(observer)
+    self.observer = nil
+  }
+
+  deinit {
+    stopObserving()
+  }
+}
+
 final class CarbonInputSourceAccess: InputSourceAccess {
   func sources() -> [InputSourceInfo] {
     rawSources().compactMap(makeInfo)
@@ -44,7 +89,11 @@ final class CarbonInputSourceAccess: InputSourceAccess {
       modeID: property(source, key: kTISPropertyInputModeID),
       bundleID: property(source, key: kTISPropertyBundleID),
       isEnabled: property(source, key: kTISPropertyInputSourceIsEnabled) ?? false,
-      isSelectable: property(source, key: kTISPropertyInputSourceIsSelectCapable) ?? false
+      isSelectable: property(source, key: kTISPropertyInputSourceIsSelectCapable) ?? false,
+      isKeyboard: (property(source, key: kTISPropertyInputSourceCategory) as String?)
+        == (kTISCategoryKeyboardInputSource as String),
+      localizedName: property(source, key: kTISPropertyLocalizedName),
+      iconURL: property(source, key: kTISPropertyIconImageURL)
     )
   }
 

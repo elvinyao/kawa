@@ -4,7 +4,7 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
   @IBOutlet private weak var tableView: NSTableView!
   @IBOutlet private weak var statusLabel: NSTextField!
 
-  private let targets = InputTarget.allCases
+  private var targets: [InputTarget] = []
   private let sourceResolver = InputSourcePresentationResolver()
   private var applicationActivationObserver: NSObjectProtocol?
 
@@ -15,7 +15,8 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
       object: NSApplication.shared,
       queue: .main
     ) { [weak self] _ in
-      self?.refreshSourceAvailability()
+      AppServices.shared?.refreshInputSources()
+      self?.applyTargets(AppServices.shared?.targets ?? [])
     }
     guard let controller = AppServices.shared?.shortcutController else {
       showStatus("Shortcut services are not available.", isError: true)
@@ -28,12 +29,17 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
       self?.refresh(target: target)
       self?.showStatus(error.errorDescription ?? "Shortcut registration failed.", isError: true)
     }
+    AppServices.shared?.onTargetsChanged = { [weak self] targets in
+      self?.applyTargets(targets)
+    }
+    applyTargets(AppServices.shared?.targets ?? [])
     showInitialStatus(controller: controller)
   }
 
   override func viewWillAppear() {
     super.viewWillAppear()
-    tableView.reloadData()
+    AppServices.shared?.refreshInputSources()
+    applyTargets(AppServices.shared?.targets ?? [])
     if let controller = AppServices.shared?.shortcutController {
       showInitialStatus(controller: controller)
     }
@@ -69,14 +75,11 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
     let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "KeyboardCellView"), owner: self) as? NSTableCellView
     let presentation = sourceResolver.presentation(for: target)
     cell?.textField?.stringValue = target.title
-    cell?.imageView?.image = presentation?.icon
-    if target == .hiragana {
-      cell?.toolTip = presentation.map {
-        "Normal Japanese Hiragana with Kanji conversion. Enabled source: \($0.name)"
-      } ?? "Enable Japanese Romaji input for normal Hiragana with Kanji conversion in System Settings."
+    cell?.imageView?.image = presentation.icon
+    if let modeID = target.modeID {
+      cell?.toolTip = "\(presentation.name)\nSource: \(target.sourceID)\nMode: \(modeID)"
     } else {
-      cell?.toolTip = presentation.map { "Enabled input source: \($0.name)" }
-        ?? "Enable \(target.title) in System Settings → Keyboard → Text Input."
+      cell?.toolTip = "\(presentation.name)\nSource: \(target.sourceID)"
     }
     return cell
   }
@@ -97,15 +100,13 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
       return
     }
 
-    let unavailable = targets.filter { sourceResolver.presentation(for: $0) == nil }
-    if unavailable.isEmpty {
-      statusLabel.isHidden = true
-    } else {
-      let names = unavailable.map(\.title).joined(separator: ", ")
+    if targets.isEmpty {
       showStatus(
-        "Enable \(names) in System Settings → Keyboard → Text Input. You can still record shortcuts here.",
+        "No enabled keyboard input sources are available. Add one in System Settings → Keyboard → Text Input.",
         isError: false
       )
+    } else {
+      statusLabel.isHidden = true
     }
   }
 
@@ -133,7 +134,23 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
     }
   }
 
-  private func refreshSourceAvailability() {
+  private func applyTargets(_ refreshedTargets: [InputTarget]) {
+    let sameIdentities = targets.count == refreshedTargets.count
+      && zip(targets, refreshedTargets).allSatisfy { $0.0 == $0.1 }
+    targets = refreshedTargets
+
+    guard isViewLoaded else { return }
+    if !sameIdentities {
+      tableView.reloadData()
+    } else {
+      refreshSourcePresentations()
+    }
+    if let controller = AppServices.shared?.shortcutController {
+      showInitialStatus(controller: controller)
+    }
+  }
+
+  private func refreshSourcePresentations() {
     let keyboardColumn = tableView.column(
       withIdentifier: NSUserInterfaceItemIdentifier("Keyboard")
     )
@@ -142,9 +159,6 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
         forRowIndexes: IndexSet(integersIn: targets.indices),
         columnIndexes: IndexSet(integer: keyboardColumn)
       )
-    }
-    if let controller = AppServices.shared?.shortcutController {
-      showInitialStatus(controller: controller)
     }
   }
 }

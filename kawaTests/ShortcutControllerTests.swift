@@ -11,7 +11,7 @@ final class ShortcutControllerTests: XCTestCase {
     let store = FakeShortcutStore([.pinyin: binding])
     let registrar = FakeShortcutRegistrar()
     var triggered: [InputTarget] = []
-    let controller = ShortcutController(store: store, registrar: registrar) {
+    let controller = ShortcutController(targets: testTargets, store: store, registrar: registrar) {
       triggered.append($0)
     }
 
@@ -143,7 +143,7 @@ final class ShortcutControllerTests: XCTestCase {
     let store = FakeShortcutStore([.pinyin: binding, .hiragana: binding])
     let registrar = FakeShortcutRegistrar()
     var triggered: [InputTarget] = []
-    let controller = ShortcutController(store: store, registrar: registrar) {
+    let controller = ShortcutController(targets: testTargets, store: store, registrar: registrar) {
       triggered.append($0)
     }
     controller.start()
@@ -163,6 +163,7 @@ final class ShortcutControllerTests: XCTestCase {
     let registrar = FakeShortcutRegistrar()
     var triggered: [InputTarget] = []
     let controller = ShortcutController(
+      targets: testTargets,
       store: FakeShortcutStore([.pinyin: old]),
       registrar: registrar,
       onTrigger: { triggered.append($0) }
@@ -182,6 +183,7 @@ final class ShortcutControllerTests: XCTestCase {
     let registrar = FakeShortcutRegistrar()
     var triggered: [InputTarget] = []
     let controller = ShortcutController(
+      targets: testTargets,
       store: FakeShortcutStore([.pinyin: binding]),
       registrar: registrar,
       onTrigger: { triggered.append($0) }
@@ -200,6 +202,7 @@ final class ShortcutControllerTests: XCTestCase {
     let registrar = FakeShortcutRegistrar()
     var triggered: [InputTarget] = []
     let controller = ShortcutController(
+      targets: testTargets,
       store: FakeShortcutStore([.pinyin: binding]),
       registrar: registrar,
       onTrigger: { triggered.append($0) }
@@ -301,7 +304,7 @@ final class ShortcutControllerTests: XCTestCase {
     let store = FakeShortcutStore([.pinyin: binding, .hiragana: binding, .abc: binding])
     let registrar = FakeShortcutRegistrar()
     var triggered: [InputTarget] = []
-    let controller = ShortcutController(store: store, registrar: registrar) {
+    let controller = ShortcutController(targets: testTargets, store: store, registrar: registrar) {
       triggered.append($0)
     }
     controller.start()
@@ -322,6 +325,7 @@ final class ShortcutControllerTests: XCTestCase {
     registrar.failures.insert(binding)
     var controller: ShortcutController!
     controller = ShortcutController(
+      targets: testTargets,
       store: FakeShortcutStore([.pinyin: binding]),
       registrar: registrar,
       onTrigger: { _ in }
@@ -385,6 +389,7 @@ final class ShortcutControllerTests: XCTestCase {
     registrar.failures.insert(failed)
     var controller: ShortcutController!
     controller = ShortcutController(
+      targets: testTargets,
       store: FakeShortcutStore([.pinyin: failed, .abc: later]),
       registrar: registrar,
       onTrigger: { _ in }
@@ -405,6 +410,7 @@ final class ShortcutControllerTests: XCTestCase {
     var restarted = false
     var controller: ShortcutController!
     controller = ShortcutController(
+      targets: testTargets,
       store: FakeShortcutStore([.pinyin: failed, .abc: later]),
       registrar: registrar,
       onTrigger: { _ in }
@@ -431,6 +437,7 @@ final class ShortcutControllerTests: XCTestCase {
     registrar.failures.insert(failed)
     var controller: ShortcutController!
     controller = ShortcutController(
+      targets: testTargets,
       store: FakeShortcutStore([.pinyin: failed, .hiragana: cleared, .abc: later]),
       registrar: registrar,
       onTrigger: { _ in }
@@ -448,6 +455,113 @@ final class ShortcutControllerTests: XCTestCase {
     XCTAssertEqual(registrar.activeBindings, [])
   }
 
+  func testDynamicFourthTargetRestoresAndTriggers() {
+    let target = InputTarget(sourceID: "org.example.layout", title: "Example")
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    let registrar = FakeShortcutRegistrar()
+    var triggered: [InputTarget] = []
+    let controller = ShortcutController(
+      targets: [target],
+      store: FakeShortcutStore([target: binding]),
+      registrar: registrar,
+      onTrigger: { triggered.append($0) }
+    )
+
+    controller.start()
+    registrar.trigger(binding)
+
+    XCTAssertEqual(registrar.activeBindings, [binding])
+    XCTAssertEqual(triggered, [target])
+  }
+
+  func testRemovingAndReaddingTargetPreservesBindingAndRestoresRegistration() {
+    let target = InputTarget(sourceID: "org.example.layout", title: "Example")
+    let renamed = InputTarget(sourceID: "org.example.layout", title: "Renamed")
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    let store = FakeShortcutStore([target: binding])
+    let registrar = FakeShortcutRegistrar()
+    let controller = ShortcutController(
+      targets: [target], store: store, registrar: registrar, onTrigger: { _ in }
+    )
+    controller.start()
+    registrar.resetOperations()
+
+    controller.updateTargets([])
+
+    XCTAssertEqual(registrar.operations, [.unregister(binding)])
+    XCTAssertEqual(store.storedBinding(for: target), binding)
+    registrar.resetOperations()
+
+    controller.updateTargets([renamed])
+
+    XCTAssertEqual(registrar.operations, [.register(binding)])
+    XCTAssertEqual(controller.binding(for: renamed), binding)
+  }
+
+  func testRenameRefreshDoesNotReregisterUnchangedIdentity() {
+    let target = InputTarget(sourceID: "org.example.layout", title: "Before")
+    let renamed = InputTarget(sourceID: "org.example.layout", title: "After")
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    let registrar = FakeShortcutRegistrar()
+    let controller = ShortcutController(
+      targets: [target],
+      store: FakeShortcutStore([target: binding]),
+      registrar: registrar,
+      onTrigger: { _ in }
+    )
+    controller.start()
+    registrar.resetOperations()
+
+    controller.updateTargets([renamed])
+
+    XCTAssertEqual(registrar.operations, [])
+    XCTAssertEqual(controller.targets, [renamed])
+  }
+
+  func testReorderRefreshDoesNotReregisterUnchangedIdentities() {
+    let first = InputTarget(sourceID: "org.example.first", title: "First")
+    let second = InputTarget(sourceID: "org.example.second", title: "Second")
+    let firstBinding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    let secondBinding = ShortcutBinding(keyCode: 21, modifierFlags: command)
+    let registrar = FakeShortcutRegistrar()
+    let controller = ShortcutController(
+      targets: [first, second],
+      store: FakeShortcutStore([first: firstBinding, second: secondBinding]),
+      registrar: registrar,
+      onTrigger: { _ in }
+    )
+    controller.start()
+    registrar.resetOperations()
+
+    controller.updateTargets([second, first])
+
+    XCTAssertEqual(registrar.operations, [])
+    XCTAssertEqual(controller.targets, [second, first])
+  }
+
+  func testRemovedTargetRejectsEditsAndQueuedTrigger() {
+    let target = InputTarget(sourceID: "org.example.layout", title: "Example")
+    let binding = ShortcutBinding(keyCode: 20, modifierFlags: command)
+    let replacement = ShortcutBinding(keyCode: 21, modifierFlags: command)
+    let registrar = FakeShortcutRegistrar()
+    var triggered: [InputTarget] = []
+    let controller = ShortcutController(
+      targets: [target],
+      store: FakeShortcutStore([target: binding]),
+      registrar: registrar,
+      onTrigger: { triggered.append($0) }
+    )
+    controller.start()
+    let staleAction = registrar.latestAction(for: binding)
+
+    controller.updateTargets([])
+    let result = controller.setBinding(replacement, for: target)
+    staleAction?()
+
+    assertFailure(result, equals: .targetUnavailable)
+    XCTAssertEqual(triggered, [])
+  }
+
   func testClearingFromStartupErrorCallbackDoesNotReregisterRecoveredTarget() {
     let failed = ShortcutBinding(keyCode: 18, modifierFlags: command)
     let recovered = ShortcutBinding(keyCode: 19, modifierFlags: command)
@@ -456,6 +570,7 @@ final class ShortcutControllerTests: XCTestCase {
     var triggered: [InputTarget] = []
     var controller: ShortcutController!
     controller = ShortcutController(
+      targets: testTargets,
       store: FakeShortcutStore([.pinyin: failed, .hiragana: recovered]),
       registrar: registrar,
       onTrigger: { triggered.append($0) }
@@ -479,7 +594,12 @@ final class ShortcutControllerTests: XCTestCase {
     store: FakeShortcutStore,
     registrar: FakeShortcutRegistrar
   ) -> ShortcutController {
-    ShortcutController(store: store, registrar: registrar, onTrigger: { _ in })
+    ShortcutController(
+      targets: testTargets,
+      store: store,
+      registrar: registrar,
+      onTrigger: { _ in }
+    )
   }
 
   private func assertSuccess(
@@ -507,6 +627,8 @@ final class ShortcutControllerTests: XCTestCase {
   }
 }
 
+private let testTargets: [InputTarget] = [.pinyin, .hiragana, .abc]
+
 private final class FakeShortcutStore: ShortcutPersisting {
   struct SavedValue {
     let target: InputTarget
@@ -529,6 +651,10 @@ private final class FakeShortcutStore: ShortcutPersisting {
   func save(_ binding: ShortcutBinding?, for target: InputTarget) {
     values[target.storageKey] = binding
     savedValues.append(SavedValue(target: target, binding: binding))
+  }
+
+  func storedBinding(for target: InputTarget) -> ShortcutBinding? {
+    values[target.storageKey]
   }
 }
 

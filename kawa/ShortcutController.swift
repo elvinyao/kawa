@@ -15,20 +15,13 @@ struct ShortcutBinding: Equatable, Hashable {
   }
 
   var validationError: ShortcutControllerError? {
-    guard (0...127).contains(keyCode) else {
-      return .invalidKeyCode(keyCode)
-    }
-
+    guard (0...127).contains(keyCode) else { return .invalidKeyCode(keyCode) }
     let unsupported = modifierFlags & ~Self.supportedModifierFlags
-    guard unsupported == 0 else {
-      return .unsupportedModifierFlags(unsupported)
-    }
-
+    guard unsupported == 0 else { return .unsupportedModifierFlags(unsupported) }
     let hasSafeModifiers = modifierFlags != 0 && modifierFlags != Self.shiftModifierFlag
     guard hasSafeModifiers || Self.functionKeyCodes.contains(keyCode) else {
       return .unsafeWithoutModifier
     }
-
     return nil
   }
 
@@ -51,6 +44,7 @@ protocol ShortcutPersisting {
 
 enum ShortcutControllerError: Error, Equatable {
   case notStarted
+  case targetUnavailable
   case invalidKeyCode(Int)
   case unsupportedModifierFlags(UInt)
   case unsafeWithoutModifier
@@ -63,6 +57,8 @@ extension ShortcutControllerError: LocalizedError {
     switch self {
     case .notStarted:
       return "Shortcut services are not running."
+    case .targetUnavailable:
+      return "This input source is no longer enabled."
     case .invalidKeyCode(let keyCode):
       return "The shortcut has an invalid key code (\(keyCode))."
     case .unsupportedModifierFlags:
@@ -80,6 +76,7 @@ extension ShortcutControllerError: LocalizedError {
 final class ShortcutController {
   var onChange: ((InputTarget, ShortcutBinding?) -> Void)?
   var onError: ((InputTarget, ShortcutControllerError) -> Void)?
+  private(set) var targets: [InputTarget]
 
   private struct TargetState {
     var desired: ShortcutBinding?
@@ -97,10 +94,12 @@ final class ShortcutController {
   private var nextActionToken: UInt = 0
 
   init(
+    targets: [InputTarget],
     store: ShortcutPersisting,
     registrar: ShortcutRegistering,
     onTrigger: @escaping (InputTarget) -> Void
   ) {
+    self.targets = Self.unique(targets)
     self.store = store
     self.registrar = registrar
     self.onTrigger = onTrigger
@@ -113,7 +112,7 @@ final class ShortcutController {
     let startGeneration = lifecycleGeneration
     states.removeAll()
 
-    for target in InputTarget.allCases {
+    for target in targets {
       states[target.storageKey] = TargetState(
         desired: store.binding(for: target),
         registered: nil,
@@ -122,7 +121,7 @@ final class ShortcutController {
       )
     }
 
-    for target in InputTarget.allCases {
+    for target in targets {
       guard isCurrentLifecycle(startGeneration) else { return }
       attemptRestoredRegistration(for: target)
     }
@@ -133,7 +132,7 @@ final class ShortcutController {
     started = false
     lifecycleGeneration &+= 1
 
-    for target in InputTarget.allCases {
+    for target in targets {
       guard var state = states[target.storageKey] else { continue }
       state.actionToken = nil
       states[target.storageKey] = state
@@ -145,12 +144,50 @@ final class ShortcutController {
     }
   }
 
+  func updateTargets(_ newTargets: [InputTarget]) {
+    let uniqueTargets = Self.unique(newTargets)
+    guard started else {
+      targets = uniqueTargets
+      return
+    }
+
+    lifecycleGeneration &+= 1
+    let updateGeneration = lifecycleGeneration
+    let retainedKeys = Set(uniqueTargets.map(\.storageKey))
+
+    for oldTarget in targets where !retainedKeys.contains(oldTarget.storageKey) {
+      guard var state = states[oldTarget.storageKey] else { continue }
+      state.actionToken = nil
+      states[oldTarget.storageKey] = state
+      if let binding = state.registered {
+        registrar.unregister(binding)
+      }
+      states.removeValue(forKey: oldTarget.storageKey)
+    }
+
+    let existingKeys = Set(states.keys)
+    targets = uniqueTargets
+    for target in targets where !existingKeys.contains(target.storageKey) {
+      states[target.storageKey] = TargetState(
+        desired: store.binding(for: target),
+        registered: nil,
+        actionToken: nil,
+        error: nil
+      )
+    }
+
+    retryUnregisteredBindings(excluding: nil)
+    guard isCurrentLifecycle(updateGeneration) else { return }
+  }
+
   func binding(for target: InputTarget) -> ShortcutBinding? {
-    states[target.storageKey]?.desired
+    guard currentTarget(matching: target) != nil else { return nil }
+    return states[target.storageKey]?.desired
   }
 
   func error(for target: InputTarget) -> ShortcutControllerError? {
-    states[target.storageKey]?.error
+    guard currentTarget(matching: target) != nil else { return nil }
+    return states[target.storageKey]?.error
   }
 
   @discardableResult
@@ -159,16 +196,18 @@ final class ShortcutController {
     for target: InputTarget
   ) -> Result<Void, ShortcutControllerError> {
     guard started else {
-      report(.notStarted, for: target)
+      onError?(target, .notStarted)
       return .failure(.notStarted)
+    }
+    guard let target = currentTarget(matching: target) else {
+      onError?(target, .targetUnavailable)
+      return .failure(.targetUnavailable)
     }
 
     let operationGeneration = lifecycleGeneration
-
     if let binding = binding {
       return assign(binding, to: target, generation: operationGeneration)
     }
-
     clear(target, generation: operationGeneration)
     return .success(())
   }
@@ -182,11 +221,10 @@ final class ShortcutController {
       report(validationError, for: target)
       return .failure(validationError)
     }
-
     if let conflictingTarget = conflictingTarget(for: binding, excluding: target) {
-      let duplicateError = ShortcutControllerError.duplicate(conflictingTarget)
-      report(duplicateError, for: target)
-      return .failure(duplicateError)
+      let error = ShortcutControllerError.duplicate(conflictingTarget)
+      report(error, for: target)
+      return .failure(error)
     }
 
     let oldState = state(for: target)
@@ -194,9 +232,7 @@ final class ShortcutController {
        oldState.registered?.normalized == binding.normalized {
       let wasInError = oldState.error != nil
       clearError(for: target)
-      if wasInError {
-        onChange?(target, binding.normalized)
-      }
+      if wasInError { onChange?(target, binding.normalized) }
       return .success(())
     }
 
@@ -212,10 +248,7 @@ final class ShortcutController {
     newState.actionToken = token
     newState.error = nil
     states[target.storageKey] = newState
-
-    if let oldBinding = oldState.registered {
-      registrar.unregister(oldBinding)
-    }
+    if let oldBinding = oldState.registered { registrar.unregister(oldBinding) }
 
     store.save(binding.normalized, for: target)
     onChange?(target, binding.normalized)
@@ -229,16 +262,10 @@ final class ShortcutController {
     var oldState = state(for: target)
     oldState.actionToken = nil
     states[target.storageKey] = oldState
-
-    if let binding = oldState.registered {
-      registrar.unregister(binding)
-    }
+    if let binding = oldState.registered { registrar.unregister(binding) }
 
     states[target.storageKey] = TargetState(
-      desired: nil,
-      registered: nil,
-      actionToken: nil,
-      error: nil
+      desired: nil, registered: nil, actionToken: nil, error: nil
     )
     store.save(nil, for: target)
     onChange?(target, nil)
@@ -249,24 +276,20 @@ final class ShortcutController {
 
   private func attemptRestoredRegistration(for target: InputTarget) {
     var current = state(for: target)
-    guard current.registered == nil else { return }
-    guard let binding = current.desired else { return }
-
+    guard current.registered == nil, let binding = current.desired else { return }
     if let validationError = binding.validationError {
       current.error = validationError
       states[target.storageKey] = current
       onError?(target, validationError)
       return
     }
-
     if let conflictingTarget = earlierConflictingTarget(for: binding, target: target) {
-      let duplicateError = ShortcutControllerError.duplicate(conflictingTarget)
-      current.error = duplicateError
+      let error = ShortcutControllerError.duplicate(conflictingTarget)
+      current.error = error
       states[target.storageKey] = current
-      onError?(target, duplicateError)
+      onError?(target, error)
       return
     }
-
     registerRestored(binding, for: target)
   }
 
@@ -279,9 +302,7 @@ final class ShortcutController {
       current.actionToken = token
       current.error = nil
       states[target.storageKey] = current
-      if wasInError {
-        onChange?(target, binding.normalized)
-      }
+      if wasInError { onChange?(target, binding.normalized) }
     } else {
       current.registered = nil
       current.actionToken = nil
@@ -291,16 +312,14 @@ final class ShortcutController {
     }
   }
 
-  private func retryUnregisteredBindings(excluding excludedTarget: InputTarget) {
+  private func retryUnregisteredBindings(excluding excludedTarget: InputTarget?) {
     guard started else { return }
     let retryGeneration = lifecycleGeneration
-
-    for target in InputTarget.allCases where target != excludedTarget {
+    for target in targets where target != excludedTarget {
       guard isCurrentLifecycle(retryGeneration) else { return }
       let current = state(for: target)
       guard current.registered == nil, let binding = current.desired else { continue }
       guard binding.validationError == nil else { continue }
-
       if let conflictingTarget = earlierConflictingTarget(for: binding, target: target) {
         report(.duplicate(conflictingTarget), for: target)
       } else {
@@ -313,8 +332,8 @@ final class ShortcutController {
     for binding: ShortcutBinding,
     excluding excludedTarget: InputTarget
   ) -> InputTarget? {
-    InputTarget.allCases.first { target in
-      target != excludedTarget && state(for: target).desired?.normalized == binding.normalized
+    targets.first {
+      $0 != excludedTarget && state(for: $0).desired?.normalized == binding.normalized
     }
   }
 
@@ -322,11 +341,9 @@ final class ShortcutController {
     for binding: ShortcutBinding,
     target: InputTarget
   ) -> InputTarget? {
-    for candidate in InputTarget.allCases {
+    for candidate in targets {
       if candidate == target { return nil }
-      if state(for: candidate).desired?.normalized == binding.normalized {
-        return candidate
-      }
+      if state(for: candidate).desired?.normalized == binding.normalized { return candidate }
     }
     return nil
   }
@@ -335,9 +352,14 @@ final class ShortcutController {
     { [weak self] in
       guard let self = self,
             self.started,
-            self.state(for: target).actionToken == token else { return }
-      self.onTrigger(target)
+            let currentTarget = self.currentTarget(matching: target),
+            self.state(for: currentTarget).actionToken == token else { return }
+      self.onTrigger(currentTarget)
     }
+  }
+
+  private func currentTarget(matching target: InputTarget) -> InputTarget? {
+    targets.first { $0 == target }
   }
 
   private func makeActionToken() -> UInt {
@@ -347,10 +369,7 @@ final class ShortcutController {
 
   private func state(for target: InputTarget) -> TargetState {
     states[target.storageKey] ?? TargetState(
-      desired: nil,
-      registered: nil,
-      actionToken: nil,
-      error: nil
+      desired: nil, registered: nil, actionToken: nil, error: nil
     )
   }
 
@@ -369,5 +388,10 @@ final class ShortcutController {
 
   private func isCurrentLifecycle(_ generation: UInt) -> Bool {
     started && lifecycleGeneration == generation
+  }
+
+  private static func unique(_ targets: [InputTarget]) -> [InputTarget] {
+    var seen = Set<InputTarget>()
+    return targets.filter { seen.insert($0).inserted }
   }
 }

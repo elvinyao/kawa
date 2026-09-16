@@ -15,8 +15,8 @@ final class ShortcutStore: ShortcutPersisting {
     }
 
     for legacyKey in legacyKeys(for: target) {
-      guard let legacyValue = defaults.object(forKey: legacyKey),
-            let binding = decode(legacyValue) else { continue }
+      guard let legacyValue = defaults.object(forKey: legacyKey) else { continue }
+      let binding = decode(legacyValue)
       save(binding, for: target)
       return binding
     }
@@ -58,20 +58,48 @@ final class ShortcutStore: ShortcutPersisting {
   }
 
   private func legacyKeys(for target: InputTarget) -> [String] {
-    switch target {
-    case .abc:
-      return ["com-apple-keylayout-ABC"]
-    case .pinyin:
-      return ["com-apple-inputmethod-SCIM-ITABC"]
-    case .hiragana:
-      return [
+    var keys: [String] = []
+
+    if isABCPreset(target) {
+      keys.append("shortcut.abc")
+    } else if isPinyinPreset(target) {
+      keys.append("shortcut.pinyin")
+    } else if isHiraganaPreset(target) {
+      keys.append(contentsOf: [
+        "shortcut.hiragana",
         "com-apple-inputmethod-Kotoeri-RomajiTyping-Japanese",
         "com-apple-inputmethod-Kotoeri-Japanese",
         "com-apple-inputmethod-Kotoeri-RomajiTyping",
         "com-apple-JapaneseIM-RomajiTyping-Japanese",
         "com-apple-JapaneseIM-Japanese",
         "com-apple-JapaneseIM-RomajiTyping"
-      ]
+      ])
     }
+
+    keys.append(target.sourceID.replacingOccurrences(of: ".", with: "-"))
+    var seen = Set<String>()
+    return keys.filter { seen.insert($0).inserted }
+  }
+
+  private func isABCPreset(_ target: InputTarget) -> Bool {
+    target.sourceID == "com.apple.keylayout.ABC" && target.modeID == nil
+  }
+
+  private func isPinyinPreset(_ target: InputTarget) -> Bool {
+    target.sourceID == "com.apple.inputmethod.SCIM.ITABC"
+      && target.modeID == "com.apple.inputmethod.SCIM.ITABC"
+      && (target.bundleID == nil
+        || target.bundleID == "com.apple.inputmethod.SCIM"
+        || target.bundleID?.hasPrefix("com.apple.inputmethod.SCIM.") == true)
+  }
+
+  private func isHiraganaPreset(_ target: InputTarget) -> Bool {
+    guard target.sourceID.hasPrefix("com.apple.inputmethod.Kotoeri."),
+          target.modeID == "com.apple.inputmethod.Japanese" else { return false }
+    return target.bundleID == nil
+      || target.bundleID == "com.apple.inputmethod.Kotoeri"
+      || target.bundleID?.hasPrefix("com.apple.inputmethod.Kotoeri.") == true
+      || target.bundleID == "com.apple.JapaneseIM"
+      || target.bundleID?.hasPrefix("com.apple.JapaneseIM.") == true
   }
 }

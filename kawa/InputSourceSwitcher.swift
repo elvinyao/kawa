@@ -36,6 +36,10 @@ final class InputSourceSwitcher {
     self.schedule = schedule
   }
 
+  func invalidate() {
+    generation &+= 1
+  }
+
   func switchTo(
     _ target: InputTarget,
     completion: @escaping (Result<InputSourceInfo, InputSwitchFailure>) -> Void

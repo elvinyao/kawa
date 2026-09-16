@@ -13,6 +13,11 @@ extension SwitchFeedbackReporting {
 protocol AppServiceLifecycle: AnyObject {
   func start()
   func stop()
+  func refreshInputSources()
+}
+
+extension AppServiceLifecycle {
+  func refreshInputSources() {}
 }
 
 final class AppServices: AppServiceLifecycle {
@@ -20,14 +25,18 @@ final class AppServices: AppServiceLifecycle {
 
   private let switcher: InputSourceSwitcher
   private let feedback: SwitchFeedbackReporting
+  private let catalog: InputSourceCataloging
   private var started = false
   private var lifecycleGeneration: UInt = 0
+
+  var onTargetsChanged: (([InputTarget]) -> Void)?
+  private(set) var targets: [InputTarget] = []
 
   private let store: ShortcutPersisting
   private let registrar: ShortcutRegistering
 
   private(set) lazy var shortcutController: ShortcutController = {
-    ShortcutController(store: store, registrar: registrar) { [weak self] target in
+    ShortcutController(targets: [], store: store, registrar: registrar) { [weak self] target in
       self?.switchInput(to: target)
     }
   }()
@@ -36,6 +45,7 @@ final class AppServices: AppServiceLifecycle {
     store: ShortcutPersisting,
     registrar: ShortcutRegistering,
     access: InputSourceAccess,
+    catalog: InputSourceCataloging? = nil,
     schedule: @escaping InputSourceSwitcher.Schedule = { delay, callback in
       DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: callback)
     },
@@ -43,6 +53,7 @@ final class AppServices: AppServiceLifecycle {
   ) {
     self.store = store
     self.registrar = registrar
+    self.catalog = catalog ?? SystemInputSourceCatalog(access: access)
     switcher = InputSourceSwitcher(access: access, schedule: schedule)
     self.feedback = feedback
   }
@@ -51,6 +62,11 @@ final class AppServices: AppServiceLifecycle {
     guard !started else { return }
     started = true
     lifecycleGeneration &+= 1
+    catalog.startObserving { [weak self] in
+      guard let self = self, self.started else { return }
+      self.refreshInputSources()
+    }
+    refreshInputSources()
     shortcutController.start()
   }
 
@@ -58,8 +74,36 @@ final class AppServices: AppServiceLifecycle {
     guard started else { return }
     started = false
     lifecycleGeneration &+= 1
+    catalog.stopObserving()
+    switcher.invalidate()
     shortcutController.stop()
     feedback.invalidatePendingFeedback()
+  }
+
+  func refreshInputSources() {
+    if !Thread.isMainThread {
+      DispatchQueue.main.async { [weak self] in self?.refreshInputSources() }
+      return
+    }
+
+    let refreshed = catalog.targets()
+    let refreshedSet = Set(refreshed)
+    let removedTarget = targets.contains { !refreshedSet.contains($0) }
+    let changed = targets != refreshed || zip(targets, refreshed).contains { pair in
+      pair.0.title != pair.1.title
+        || pair.0.iconURL != pair.1.iconURL
+        || pair.0.bundleID != pair.1.bundleID
+    }
+
+    targets = refreshed
+    shortcutController.updateTargets(refreshed)
+    if removedTarget {
+      switcher.invalidate()
+      feedback.invalidatePendingFeedback()
+    }
+    if changed {
+      onTargetsChanged?(refreshed)
+    }
   }
 
   private func switchInput(to target: InputTarget) {
@@ -69,7 +113,8 @@ final class AppServices: AppServiceLifecycle {
     switcher.switchTo(target) { [weak self] result in
       guard let self = self,
             self.started,
-            self.lifecycleGeneration == requestGeneration else { return }
+            self.lifecycleGeneration == requestGeneration,
+            self.targets.contains(target) else { return }
 
       switch result {
       case .success(let source):
@@ -111,7 +156,10 @@ final class AppLaunchCoordinator {
     }
   }
 
-  func applicationDidBecomeActive() {}
+  func applicationDidBecomeActive() {
+    guard finishedLaunching else { return }
+    services.refreshInputSources()
+  }
 
   func applicationShouldHandleReopen() {
     guard finishedLaunching else { return }
