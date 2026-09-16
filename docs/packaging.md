@@ -23,6 +23,13 @@ The executable must report `Mach-O 64-bit executable arm64`. Signature verificat
 must succeed for both the built and copied app. An ad-hoc signature establishes
 integrity; it is not a Developer ID identity or Apple notarization.
 
+If the archive listing contains Finder's top-level `.DS_Store`, remove only
+those archive entries, then repeat the integrity and checksum commands above:
+
+```sh
+/usr/bin/zip -d build/release/Kawa-AppleSilicon-test.zip Kawa-AppleSilicon-test/.DS_Store __MACOSX/Kawa-AppleSilicon-test/._.DS_Store
+```
+
 Inspect the staging directory and ZIP listing before sharing. They should contain
 only `Kawa.app`, `LICENSE`, `THIRD-PARTY-NOTICES.md`, `install-zh.md`, `testing.md`,
 and archive metadata. Use a clean staging directory for a later release to avoid

@@ -1,5 +1,7 @@
 # Kawa Apple Silicon Input Switching Design
 
+> Historical design for build 2. On 2026-09-16 the user requested restoration of the original dynamic system-derived input-source list. The fixed-three-target scope below is superseded by [the dynamic source plan](../plans/2026-09-16-dynamic-input-sources.md); native compatibility, lifecycle, migration, and verified-switching requirements remain in effect.
+
 ## Approval and scope
 
 The user approved this design in conversation on 2026-09-15 and explicitly requested an implementation plan followed by implementation. The user also revoked the repository's Docker-only rule and authorized native macOS/Xcode execution and computer use of Xcode. Continue through implementation without another planning handoff.

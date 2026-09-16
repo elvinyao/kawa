@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-Kawa is a Swift/AppKit menu bar app for switching among Apple Pinyin, Japanese Hiragana, and ABC.
+Kawa is a Swift/AppKit menu bar app for switching among macOS-enabled keyboard input sources, with independent shortcuts for selectable modes.
 
 - `kawa/`: application sources. Separate input-source access, switching verification, shortcut registration, persistence, and UI presentation.
 - `kawa/en.lproj/Main.storyboard` and `kawa/Images.xcassets/`: interface and bundled icons. `resource/` contains artwork.
@@ -26,7 +26,7 @@ Use two-space indentation, same-line opening braces, `UpperCamelCase` types, and
 
 ## Testing Guidelines
 
-Name test files `*Tests.swift` and methods `test...`. Test production logic with injected OS boundaries and isolated UserDefaults suites. Unit tests must not register real hotkeys or change system input sources. No coverage percentage is mandated. Record native UI, CJK composition, persistence, and notification checks in `docs/testing.md`; label unobserved results UNVERIFIED.
+Name test files `*Tests.swift` and methods `test...`. Test catalog changes, source/mode identity, migration, and shortcut lifecycle with injected OS boundaries and isolated UserDefaults suites. Unit tests must not register real hotkeys or change system input sources. No coverage percentage is mandated. Record native UI, CJK composition, persistence, and notification checks in `docs/testing.md`; label unobserved results UNVERIFIED.
 
 ## Commit & Pull Request Guidelines
 

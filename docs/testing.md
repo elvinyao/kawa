@@ -2,6 +2,50 @@
 
 This is the evidence log and reproducible checklist for the first limited test release. A PASS requires an observed result; an automated fake of an OS service does not establish a native input-method PASS.
 
+## Dynamic-list edition: 1.2.0 (3)
+
+The user requested restoration of the original dynamic list on 2026-09-16.
+This edition reads enabled, selectable keyboard sources and modes from macOS;
+the earlier fixed-three-target scope is superseded. Source/mode IDs preserve
+binding identity through display-name and ordering changes. Catalog removal
+releases a registration without deleting its saved value; re-addition restores
+it. Existing original-version and fixed-edition bindings/tombstones migrate.
+
+Results below the historical heading are build-2 evidence and must not be
+presented as manual acceptance of build 3.
+
+System Settings was inspected without changing configuration: its enabled list
+showed ABC, `拼音 – 簡体字`, and `日本語 – ローマ字入力`. The application lists
+the selectable modes within these configured sources, rather than unselectable
+input-method containers.
+
+At commit `c04c7d5`, native tests passed (105 tests, 0 failures), Release built
+successfully, and arm64/signature checks passed. The staged app visibly listed
+six entries: ABC, Pinyin – Simplified, Hiragana, Katakana, Full-width Romaji,
+and Half-width Katakana. Thus the three configured system input methods expand
+to six directly selectable entries. The existing user Pinyin binding `⌘1`
+was displayed; no recorder was edited. Notifications remained off. The app
+was quit before further fixes/builds.
+
+Final implementation commit: `768b683`. Independent spec and code-quality
+reviews passed. Final native Debug XCTest run passed **117 tests, 0 failures**
+(`Test-kawa-2026.09.16_09-57-35-+0900.xcresult`). The parent rebuilt Release
+successfully, confirmed the executable is arm64, and verified its ad-hoc
+signature with deep/strict codesign checking. The final staged app was opened
+again: the same six system-derived entries and existing Pinyin `⌘1` binding
+were visible. The settings window was left open for the user.
+
+Build provenance: builds used the current checkout, including the pre-existing
+uncommitted `kawa/en.lproj/Main.storyboard` edits. Those edits were preserved
+and excluded from the implementation commits.
+
+No system sources were added/removed, no global test shortcuts were installed,
+and no text was entered during this dynamic-edition inspection. Actual physical
+hotkeys, OS notification delivery, and live add/remove behavior for build 3
+remain UNVERIFIED; catalog reconciliation is covered by injected-boundary tests.
+
+## Historical build-2 evidence
+
 ## Environment
 
 - Host OS: macOS 27.0, build 26A428 (read from SystemVersion.plist).
@@ -126,9 +170,9 @@ This session did not verify return from Katakana/Roman mode, rapid switching,
 in-progress composition policy, or OS notification display. These require
 further physical-keyboard acceptance and must not be inferred from unit tests.
 
-## Packaging
+## Current package
 
-Final package: `build/release/Kawa-AppleSilicon-test.zip`. Include `Kawa.app`, Chinese installation instructions, this validation record, the MIT license, and the MASShortcut BSD-2-Clause notice. Exclude build caches, test products, signing credentials, user preferences, and private documents. Verify contents before sharing. Public upload is outside this task's authorization.
+Final package: `build/release/Kawa-AppleSilicon-test.zip`, version 1.2.0 (3). Include `Kawa.app`, Chinese installation instructions, this validation record, the MIT license, and the MASShortcut BSD-2-Clause notice. Exclude build caches, test products, signing credentials, user preferences, and private documents. Verify contents before sharing. Public upload is outside this task's authorization.
 
 | Check | Status | Evidence |
 | --- | --- | --- |

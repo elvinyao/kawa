@@ -11,10 +11,15 @@ A macOS input source switcher with user-defined shortcuts.
 ## Apple Silicon test edition
 
 This branch targets Apple Silicon Macs and preserves Kawa's settings window.
-Assign one shortcut each to Apple's Pinyin, normal Japanese Hiragana (with Kanji
-conversion), and ABC. Shortcuts belong to the running app and remain available
+The list comes from macOS's enabled, selectable keyboard input sources, including
+third-party sources and separately selectable modes. Assign an independent
+shortcut to each entry. Choose Apple's normal Hiragana entry for Japanese input
+with Kanji conversion. Shortcuts belong to the running app and remain available
 when its settings window is closed. Switching is confirmed against the system's
-current input source before success is reported.
+current input source before success is reported. System input-source changes
+refresh the list and registrations. Removing a source releases its shortcut;
+adding it again restores its saved binding. Existing original-version and
+fixed-three-target test-version settings migrate automatically.
 
 See the [Chinese installation guide](docs/install-zh.md) and
 [validation record](docs/testing.md) for setup, observed results, and outstanding

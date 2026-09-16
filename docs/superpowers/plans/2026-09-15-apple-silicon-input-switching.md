@@ -1,5 +1,7 @@
 # Apple Silicon Input Switching Implementation Plan
 
+> Historical build-2 plan. The fixed-three-target scope was superseded by the user's 2026-09-16 request and [dynamic source plan](2026-09-16-dynamic-input-sources.md). Earlier test results remain historical evidence.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox syntax for tracking.
 
 **Goal:** Deliver an arm64 Kawa test application whose three configurable shortcuts reliably select Apple Pinyin, Japanese Hiragana, and ABC without depending on an open settings window.
