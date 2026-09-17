@@ -12,7 +12,9 @@ final class PolishedShortcutView: MASShortcutView {
 
   override func awakeFromNib() {
     super.awakeFromNib()
-    style = .flat
+    // The default style reserves a 23-point trailing action area. Keep its
+    // inherited hit testing while the custom cell supplies the appearance.
+    style = .default
     setAcceptsFirstResponder(true)
     // Draw focus inside the control instead of AppKit's outward cell mask.
     focusRingType = .none
@@ -64,6 +66,10 @@ final class PolishedShortcutCell: NSButtonCell {
   }
 
   override func drawInterior(withFrame cellFrame: NSRect, in controlView: NSView) {
+    if alignment == .right {
+      drawDismissButton(in: cellFrame)
+      return
+    }
     switch title {
     case "Record Shortcut":
       title = "Set Shortcut"
@@ -86,13 +92,32 @@ final class PolishedShortcutCell: NSButtonCell {
     ]
     let text = title as NSString
     let textSize = text.size(withAttributes: attributes)
-    let x = alignment == .right ? cellFrame.maxX - textSize.width - 4
-      : cellFrame.midX - textSize.width / 2
+    let x = cellFrame.midX - textSize.width / 2
     NSGraphicsContext.saveGraphicsState()
     defer { NSGraphicsContext.restoreGraphicsState() }
     // Keep localized prompts and long key combinations inside their own segment.
     NSBezierPath(rect: cellFrame.insetBy(dx: 4, dy: 0)).addClip()
     text.draw(at: NSPoint(x: x, y: cellFrame.midY - textSize.height / 2), withAttributes: attributes)
+  }
+
+  private func drawDismissButton(in frame: NSRect) {
+    // MASShortcut's default style centers clear/cancel in the trailing 23 pt.
+    let center = NSPoint(x: frame.maxX - 11.5, y: frame.midY)
+    let circle = NSBezierPath(ovalIn: NSRect(
+      x: center.x - 6, y: center.y - 6, width: 12, height: 12
+    ))
+    NSColor.labelColor.withAlphaComponent(isEnabled ? 0.08 : 0.04).setFill()
+    circle.fill()
+
+    let mark = NSBezierPath()
+    mark.move(to: NSPoint(x: center.x - 2, y: center.y - 2))
+    mark.line(to: NSPoint(x: center.x + 2, y: center.y + 2))
+    mark.move(to: NSPoint(x: center.x + 2, y: center.y - 2))
+    mark.line(to: NSPoint(x: center.x - 2, y: center.y + 2))
+    mark.lineWidth = 1
+    mark.lineCapStyle = .round
+    (isEnabled ? NSColor.secondaryLabelColor : NSColor.disabledControlTextColor).setStroke()
+    mark.stroke()
   }
 }
 
