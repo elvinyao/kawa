@@ -12,7 +12,7 @@ and notification authorization behavior remain outside this change.
 Baseline native inspection showed five input-source rows, Pinyin `⌘3`, other
 bindings empty, and notifications off. The working checkout was clean at
 `ee72312`; the earlier uncommitted storyboard rewrite was no longer present.
-Verification on 2026-09-17, application source `c4f6a8b`:
+Verification on 2026-09-17, application source `f74d58e`:
 
 - Native Debug XCTest: **117 passed, 0 failures**; native Release build passed.
 - Built and staged executables: **arm64**; both passed deep/strict signature
@@ -38,6 +38,15 @@ Text is clipped to its own segment. Native inspection confirmed normal,
 recording, and focused-after-cancel states stay within the control; Escape and
 the right-side cancel control preserve bindings. Release build and all 117
 existing tests passed again. Pinyin remained `⌘3`; notifications remained off.
+
+The dismiss-icon refinement (`f74d58e`) replaces the large text glyph with a
+12-point neutral circle and a small rounded cross, centered vertically in the
+native default style's 23-point action region. Clear and recording-cancel use
+the same appearance and inherited hit testing. Native inspection confirmed the
+icon stays inset from the border; clicks on its center and the inner side of
+the expanded action region both cancelled recording and preserved Pinyin `⌘3`.
+Release build, all 117 tests, and built/staged signature checks passed again.
+Clearing the user's stored shortcut was not exercised.
 
 **UNVERIFIED for this UI build:** dark appearance, catalogs longer than eight
 rows, live contextual error/notification-status rendering, disabled controls,

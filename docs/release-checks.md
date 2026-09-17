@@ -2,10 +2,10 @@
 
 - Package: `build/release/Kawa-AppleSilicon-test.zip`
 - Edition: Kawa Test Build 1.2.0 (4), Apple Silicon only, refined settings UI with the dynamic system input-source list.
-- Application source commit: `c4f6a8b` (includes the narrower recorder and inset focus border).
+- Application source commit: `f74d58e` (includes the narrower recorder, inset focus border, and aligned circular dismiss icon).
 - Verification completed: 2026-09-17, Asia/Tokyo.
-- Size: 535878 bytes.
-- SHA-256: `64b576ec39ef231c0286d374411a56e4d1390a66430cb0c59f3cdbee273f1cb3`
+- Size: 536486 bytes.
+- SHA-256: `5527a6e523a0d2c3e46c13202e107cfb57e19ea49e67dff67a74edd00315f7f8`
 
 ## Observed results
 
@@ -29,6 +29,8 @@ and General panes fit their content, with aligned rows, readable help, and
 visible recorder borders. The refined controls are 160 × 26 points, with
 neutral borders, clearer text, and a single inset focus highlight. Normal,
 recording, and focused-after-cancel states fit within the shortcut column.
+The small circular clear/cancel icon is vertically centered in its 23-point
+action area; both its center and inner-side cancellation clicks were verified.
 
 Recording Pinyin and pressing Escape preserved its existing `⌘3` binding.
 Recording ABC and clicking its right-side cancel segment preserved its empty
