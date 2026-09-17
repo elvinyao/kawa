@@ -2,6 +2,8 @@ import Cocoa
 import MASShortcut
 
 final class PolishedShortcutView: MASShortcutView {
+  private static let flatHintWidth: CGFloat = 15
+
   override class func shortcutCellClass() -> AnyClass {
     PolishedShortcutCell.self
   }
@@ -56,8 +58,9 @@ final class PolishedShortcutView: MASShortcutView {
     if shortcutValue != nil || isRecording {
       strokeColor.withAlphaComponent(0.55).setStroke()
       let divider = NSBezierPath()
-      divider.move(to: NSPoint(x: self.bounds.maxX - 23.5, y: 5))
-      divider.line(to: NSPoint(x: self.bounds.maxX - 23.5, y: self.bounds.maxY - 5))
+      let dividerX = self.bounds.maxX - Self.flatHintWidth
+      divider.move(to: NSPoint(x: dividerX, y: 5))
+      divider.line(to: NSPoint(x: dividerX, y: self.bounds.maxY - 5))
       divider.lineWidth = 0.5
       divider.stroke()
     }
@@ -67,6 +70,10 @@ final class PolishedShortcutView: MASShortcutView {
 }
 
 final class PolishedShortcutCell: NSButtonCell {
+  override func draw(withFrame cellFrame: NSRect, in controlView: NSView) {
+    drawInterior(withFrame: cellFrame, in: controlView)
+  }
+
   override func drawInterior(withFrame cellFrame: NSRect, in controlView: NSView) {
     switch title {
     case "Record Shortcut":
