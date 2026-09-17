@@ -12,7 +12,7 @@ and notification authorization behavior remain outside this change.
 Baseline native inspection showed five input-source rows, Pinyin `⌘3`, other
 bindings empty, and notifications off. The working checkout was clean at
 `ee72312`; the earlier uncommitted storyboard rewrite was no longer present.
-Verification on 2026-09-17, application source `db3966f`:
+Verification on 2026-09-17, application source `c4f6a8b`:
 
 - Native Debug XCTest: **117 passed, 0 failures**; native Release build passed.
 - Built and staged executables: **arm64**; both passed deep/strict signature
@@ -27,7 +27,17 @@ Verification on 2026-09-17, application source `db3966f`:
 - After switching between both tabs, Pinyin remained `⌘3`, other bindings
   remained empty, and notifications remained off. No preferences or system
   input sources were changed, and no notification permission was requested.
-- Independent spec and code-quality reviews passed after fixes.
+- Independent spec and code-quality reviews passed for the initial UI revision
+  `db3966f`.
+
+The follow-up recorder refinement (`c4f6a8b`) uses centered 160 × 26-point
+controls with at least 12 points of horizontal cell padding, quieter neutral
+borders, and explicit 12-point text. AppKit's outward focus ring is disabled;
+the accessible, keyboard-focusable recorder draws a single inset focus border.
+Text is clipped to its own segment. Native inspection confirmed normal,
+recording, and focused-after-cancel states stay within the control; Escape and
+the right-side cancel control preserve bindings. Release build and all 117
+existing tests passed again. Pinyin remained `⌘3`; notifications remained off.
 
 **UNVERIFIED for this UI build:** dark appearance, catalogs longer than eight
 rows, live contextual error/notification-status rendering, disabled controls,
