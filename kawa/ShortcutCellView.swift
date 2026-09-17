@@ -26,25 +26,27 @@ final class PolishedShortcutView: MASShortcutView {
   }
 
   override func draw(_ dirtyRect: NSRect) {
+    super.draw(dirtyRect)
+
     let isFocused = window?.firstResponder === self
     let fillColor: NSColor
     let strokeColor: NSColor
 
     if !isEnabled {
-      fillColor = .controlBackgroundColor
-      strokeColor = .separatorColor
+      fillColor = NSColor.disabledControlTextColor.withAlphaComponent(0.05)
+      strokeColor = NSColor.disabledControlTextColor.withAlphaComponent(0.35)
     } else if isRecording {
-      fillColor = NSColor.controlAccentColor.withAlphaComponent(0.14)
+      fillColor = NSColor.controlAccentColor.withAlphaComponent(0.12)
       strokeColor = .controlAccentColor
     } else if isFocused {
-      fillColor = NSColor.keyboardFocusIndicatorColor.withAlphaComponent(0.10)
+      fillColor = NSColor.keyboardFocusIndicatorColor.withAlphaComponent(0.08)
       strokeColor = .keyboardFocusIndicatorColor
     } else if shortcutValue != nil {
       fillColor = NSColor.controlAccentColor.withAlphaComponent(0.07)
-      strokeColor = .separatorColor
+      strokeColor = NSColor.controlAccentColor.withAlphaComponent(0.55)
     } else {
-      fillColor = .controlBackgroundColor
-      strokeColor = .separatorColor
+      fillColor = .clear
+      strokeColor = NSColor.secondaryLabelColor.withAlphaComponent(0.55)
     }
 
     let bounds = self.bounds.insetBy(dx: 0.5, dy: 0.5)
@@ -61,11 +63,9 @@ final class PolishedShortcutView: MASShortcutView {
       let dividerX = self.bounds.maxX - Self.flatHintWidth
       divider.move(to: NSPoint(x: dividerX, y: 5))
       divider.line(to: NSPoint(x: dividerX, y: self.bounds.maxY - 5))
-      divider.lineWidth = 0.5
+      divider.lineWidth = 1
       divider.stroke()
     }
-
-    super.draw(dirtyRect)
   }
 }
 

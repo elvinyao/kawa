@@ -98,7 +98,7 @@ class ShortcutViewController: NSViewController, NSTableViewDataSource, NSTableVi
       let textY = cell.isFlipped ? CGFloat(13) : max(0, cell.bounds.height - 29)
       cell.imageView?.frame = NSRect(x: 8, y: iconY, width: 20, height: 20)
       cell.textField?.frame = NSRect(x: 38, y: textY, width: max(0, cell.bounds.width - 46), height: 16)
-      cell.textField?.autoresizingMask = [.width]
+      cell.textField?.autoresizingMask = [.width, .minYMargin]
     }
     if let modeID = target.modeID {
       cell?.toolTip = "\(presentation.name)\nSource: \(target.sourceID)\nMode: \(modeID)"
