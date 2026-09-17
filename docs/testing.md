@@ -2,7 +2,42 @@
 
 This is the evidence log and reproducible checklist for the first limited test release. A PASS requires an observed result; an automated fake of an OS service does not establish a native input-method PASS.
 
-## Dynamic-list edition: 1.2.0 (3)
+## Settings UI edition: 1.2.0 (4)
+
+The user approved UI-only improvements on 2026-09-17: compact content fitting,
+clearer list alignment, lighter shortcut controls, Shortcuts / General labels,
+and contextual status presentation. Input discovery, saved bindings, switching,
+and notification authorization behavior remain outside this change.
+
+Baseline native inspection showed five input-source rows, Pinyin `⌘3`, other
+bindings empty, and notifications off. The working checkout was clean at
+`ee72312`; the earlier uncommitted storyboard rewrite was no longer present.
+Verification on 2026-09-17, application source `db3966f`:
+
+- Native Debug XCTest: **117 passed, 0 failures**; native Release build passed.
+- Built and staged executables: **arm64**; both passed deep/strict signature
+  verification. Signing remains ad-hoc.
+- Native light-appearance inspection: Shortcuts renders five complete rows in
+  a compact window; General shrinks to its content. Names, icons, column
+  alignment, help text, and notification checkbox have no observed clipping.
+- Empty recorders show a border; assigned Pinyin `⌘3` has a tinted background
+  and clear segment. Recording shows a stronger blue border, prompt, and cancel
+  segment. Escape restored Pinyin `⌘3`; clicking ABC's right cancel segment
+  restored its empty state. Keyboard-focus highlighting was visible.
+- After switching between both tabs, Pinyin remained `⌘3`, other bindings
+  remained empty, and notifications remained off. No preferences or system
+  input sources were changed, and no notification permission was requested.
+- Independent spec and code-quality reviews passed after fixes.
+
+**UNVERIFIED for this UI build:** dark appearance, catalogs longer than eight
+rows, live contextual error/notification-status rendering, disabled controls,
+VoiceOver use, actual physical global hotkeys, and CJK composition. These were
+not exercised by changing the user's configuration. Automated tests protect
+core behavior; they do not establish native UI or physical-keyboard acceptance.
+
+Build-3 and build-2 evidence below is historical, not new-build acceptance.
+
+## Historical dynamic-list edition: 1.2.0 (3)
 
 The user requested restoration of the original dynamic list on 2026-09-16.
 This edition reads enabled, selectable keyboard sources and modes from macOS;

@@ -1,11 +1,11 @@
 # Test Release Verification
 
 - Package: `build/release/Kawa-AppleSilicon-test.zip`
-- Edition: Kawa Test Build 1.2.0 (3), Apple Silicon only, dynamic system input-source list.
-- Application source commit: `768b683`, built with the pre-existing uncommitted storyboard edits preserved in the working checkout.
-- Verification completed: 2026-09-16, Asia/Tokyo.
-- Size: 512169 bytes.
-- SHA-256: `eeb4cd79e4cda150a23509aae1c65582f50ea86d9ebe80a62e4a6d311191c382`
+- Edition: Kawa Test Build 1.2.0 (4), Apple Silicon only, refined settings UI with the dynamic system input-source list.
+- Application source commit: `db3966f`.
+- Verification completed: 2026-09-17, Asia/Tokyo.
+- Size: 534942 bytes.
+- SHA-256: `45f5c4dab518bfc512f3e5e181f21215eb9170dbb1d9936a1418d74eb3b29eca`
 
 ## Observed results
 
@@ -23,18 +23,20 @@ This record stays outside the ZIP to avoid a self-referential archive checksum.
 
 ## Interactive acceptance
 
-On 2026-09-16 the final staged app launched and rendered six selectable entries:
-ABC, Pinyin – Simplified, Hiragana, Katakana, Full-width Romaji, and Half-width
-Katakana. System Settings showed the corresponding three configured input
-methods; Kawa exposes their selectable modes. The user's existing Pinyin `⌘1`
-binding remained visible. The settings window was left open for the user.
+The final staged app rendered five system input-source entries: ABC,
+Pinyin – Simplified, Hiragana, Katakana, and Full-width Romaji. The Shortcuts
+and General panes fit their content, with aligned rows, readable help, and
+visible recorder borders. Assigned and recording states have distinct emphasis.
 
-No system input-source configuration or shortcut recorder values were changed
-during the build-3 inspection. Actual physical hotkeys, in-progress composition,
-OS notifications, and live source add/remove behavior remain unverified for
-this build; reconciliation and migration have automated regression coverage.
-Earlier build-2 keyboard results are preserved separately in `docs/testing.md`
-and are not represented as new-build acceptance. Independent spec and final
-code-quality reviews passed.
+Recording Pinyin and pressing Escape preserved its existing `⌘3` binding.
+Recording ABC and clicking its right-side cancel segment preserved its empty
+binding. Other bindings remained empty; notifications remained off. No system
+input sources or stored preferences were changed, and no permission was requested.
+Independent spec and final code-quality reviews passed.
+
+Dark appearance, more than eight rows, live error/notification-status layouts,
+disabled controls, VoiceOver, physical global hotkeys, and CJK composition remain
+unverified for this build. See `docs/testing.md` for the evidence and historical
+results; earlier keyboard acceptance is not counted as new-build verification.
 
 The test package has not been published or installed into `/Applications`.
