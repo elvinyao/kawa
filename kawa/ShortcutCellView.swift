@@ -2,21 +2,20 @@ import Cocoa
 import MASShortcut
 
 final class PolishedShortcutView: MASShortcutView {
-  private static let flatHintWidth: CGFloat = 15
-
   override class func shortcutCellClass() -> AnyClass {
     PolishedShortcutCell.self
   }
 
   override var intrinsicContentSize: NSSize {
-    NSSize(width: 176, height: 28)
+    NSSize(width: 160, height: 26)
   }
 
   override func awakeFromNib() {
     super.awakeFromNib()
     style = .flat
     setAcceptsFirstResponder(true)
-    focusRingType = .default
+    // Draw focus inside the control instead of AppKit's outward cell mask.
+    focusRingType = .none
     toolTip = "Click to set a shortcut. Use the right-hand control to clear or cancel."
   }
 
@@ -34,38 +33,28 @@ final class PolishedShortcutView: MASShortcutView {
 
     if !isEnabled {
       fillColor = NSColor.disabledControlTextColor.withAlphaComponent(0.05)
-      strokeColor = NSColor.disabledControlTextColor.withAlphaComponent(0.35)
+      strokeColor = NSColor.disabledControlTextColor.withAlphaComponent(0.18)
     } else if isRecording {
-      fillColor = NSColor.controlAccentColor.withAlphaComponent(0.12)
+      fillColor = NSColor.controlAccentColor.withAlphaComponent(0.08)
       strokeColor = .controlAccentColor
     } else if isFocused {
-      fillColor = NSColor.keyboardFocusIndicatorColor.withAlphaComponent(0.08)
+      fillColor = NSColor.keyboardFocusIndicatorColor.withAlphaComponent(0.04)
       strokeColor = .keyboardFocusIndicatorColor
     } else if shortcutValue != nil {
-      fillColor = NSColor.controlAccentColor.withAlphaComponent(0.07)
-      strokeColor = NSColor.controlAccentColor.withAlphaComponent(0.55)
+      fillColor = NSColor.labelColor.withAlphaComponent(0.03)
+      strokeColor = NSColor.labelColor.withAlphaComponent(0.20)
     } else {
       fillColor = .clear
-      strokeColor = NSColor.secondaryLabelColor.withAlphaComponent(0.55)
+      strokeColor = NSColor.labelColor.withAlphaComponent(0.16)
     }
 
-    let bounds = self.bounds.insetBy(dx: 0.5, dy: 0.5)
-    let path = NSBezierPath(roundedRect: bounds, xRadius: 5, yRadius: 5)
+    let bounds = self.bounds.insetBy(dx: 1, dy: 1)
+    let path = NSBezierPath(roundedRect: bounds, xRadius: 6, yRadius: 6)
     fillColor.setFill()
     path.fill()
     strokeColor.setStroke()
     path.lineWidth = isRecording || isFocused ? 1.5 : 1
     path.stroke()
-
-    if shortcutValue != nil || isRecording {
-      strokeColor.withAlphaComponent(0.55).setStroke()
-      let divider = NSBezierPath()
-      let dividerX = self.bounds.maxX - Self.flatHintWidth
-      divider.move(to: NSPoint(x: dividerX, y: 5))
-      divider.line(to: NSPoint(x: dividerX, y: self.bounds.maxY - 5))
-      divider.lineWidth = 1
-      divider.stroke()
-    }
   }
 }
 
@@ -83,7 +72,27 @@ final class PolishedShortcutCell: NSButtonCell {
     default:
       break
     }
-    super.drawInterior(withFrame: cellFrame, in: controlView)
+    let textColor: NSColor
+    if !isEnabled {
+      textColor = .disabledControlTextColor
+    } else if (controlView as? MASShortcutView)?.shortcutValue != nil {
+      textColor = .labelColor
+    } else {
+      textColor = .secondaryLabelColor
+    }
+    let attributes: [NSAttributedString.Key: Any] = [
+      .font: NSFont.systemFont(ofSize: 12),
+      .foregroundColor: textColor
+    ]
+    let text = title as NSString
+    let textSize = text.size(withAttributes: attributes)
+    let x = alignment == .right ? cellFrame.maxX - textSize.width - 4
+      : cellFrame.midX - textSize.width / 2
+    NSGraphicsContext.saveGraphicsState()
+    defer { NSGraphicsContext.restoreGraphicsState() }
+    // Keep localized prompts and long key combinations inside their own segment.
+    NSBezierPath(rect: cellFrame.insetBy(dx: 4, dy: 0)).addClip()
+    text.draw(at: NSPoint(x: x, y: cellFrame.midY - textSize.height / 2), withAttributes: attributes)
   }
 }
 
@@ -106,9 +115,15 @@ class ShortcutCellView: NSTableCellView {
 
   override func layout() {
     super.layout()
-    let recorderY = isFlipped ? CGFloat(7) : max(0, bounds.height - 35)
+    let recorderY = isFlipped ? CGFloat(8) : max(0, bounds.height - 34)
     let errorY = isFlipped ? CGFloat(38) : CGFloat(4)
-    shortcutView.frame = NSRect(x: 8, y: recorderY, width: max(0, bounds.width - 16), height: 28)
+    let recorderWidth = min(160, max(0, bounds.width - 24))
+    shortcutView.frame = NSRect(
+      x: floor((bounds.width - recorderWidth) / 2),
+      y: recorderY,
+      width: recorderWidth,
+      height: 26
+    )
     errorLabel.frame = NSRect(
       x: 8,
       y: errorY,
