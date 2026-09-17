@@ -2,13 +2,17 @@ import Cocoa
 
 class PreferencesViewController: NSViewController {
   @IBOutlet weak var showNotificationCheckbox: NSButton!
+  @IBOutlet weak var preferencesBox: NSBox!
+  @IBOutlet weak var quitButton: NSButton!
   private weak var notificationStatusLabel: NSTextField?
   private var applicationActivationObserver: NSObjectProtocol?
+  private let helpLabel = NSTextField(wrappingLabelWithString: "Choose whether Kawa confirms successful input source changes with a notification.")
 
   override func viewDidLoad() {
     super.viewDidLoad()
 
     showNotificationCheckbox.state = PermanentStorage.showsNotification.stateValue
+    configureAppearance()
     installNotificationStatusLabel()
     applicationActivationObserver = NotificationCenter.default.addObserver(
       forName: NSApplication.didBecomeActiveNotification,
@@ -31,6 +35,11 @@ class PreferencesViewController: NSViewController {
     }
   }
 
+  override func viewDidLayout() {
+    super.viewDidLayout()
+    layoutContent()
+  }
+
   @IBAction func quitApp(_ sender: NSButton) {
     NSApplication.shared.terminate(nil)
   }
@@ -40,6 +49,7 @@ class PreferencesViewController: NSViewController {
     PermanentStorage.showsNotification = enabled
     guard enabled else {
       notificationStatusLabel?.isHidden = true
+      updatePreferredContentSize()
       SwitchFeedback.shared?.notificationPreferenceChanged(enabled: false)
       return
     }
@@ -50,13 +60,13 @@ class PreferencesViewController: NSViewController {
 
   private func installNotificationStatusLabel() {
     let label = NSTextField(wrappingLabelWithString: "")
-    label.frame = NSRect(x: 21, y: 78, width: max(260, view.bounds.width - 42), height: 42)
-    label.autoresizingMask = [.width]
     label.font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
     label.textColor = .secondaryLabelColor
+    label.maximumNumberOfLines = 2
     label.isHidden = true
     view.addSubview(label)
     notificationStatusLabel = label
+    updatePreferredContentSize()
   }
 
   private func refreshNotificationStatus() {
@@ -69,6 +79,7 @@ class PreferencesViewController: NSViewController {
   private func displayNotificationStatus(_ status: SwitchNotificationAuthorization) {
     guard PermanentStorage.showsNotification else {
       notificationStatusLabel?.isHidden = true
+      updatePreferredContentSize()
       return
     }
     switch status {
@@ -83,6 +94,66 @@ class PreferencesViewController: NSViewController {
     case .notDetermined:
       notificationStatusLabel?.isHidden = true
     }
+    updatePreferredContentSize()
+  }
+
+  private func configureAppearance() {
+    helpLabel.font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+    helpLabel.textColor = .secondaryLabelColor
+    helpLabel.maximumNumberOfLines = 2
+    view.addSubview(helpLabel)
+    preferencesBox.title = "Notifications"
+    preferencesBox.boxType = .primary
+    showNotificationCheckbox.font = NSFont.systemFont(ofSize: 13)
+    quitButton.bezelStyle = .rounded
+    quitButton.controlSize = .regular
+  }
+
+  private func updatePreferredContentSize() {
+    guard isViewLoaded else { return }
+    preferredContentSize = NSSize(
+      width: 520,
+      height: notificationStatusLabel?.isHidden == false ? 230 : 190
+    )
+    view.needsLayout = true
+    DispatchQueue.main.async { [weak self] in
+      (self?.view.window?.windowController as? MainWindowController)?.fitToSelectedContent()
+    }
+  }
+
+  private func layoutContent() {
+    let margin: CGFloat = 20
+    let availableWidth = max(0, view.bounds.width - margin * 2)
+    helpLabel.frame = NSRect(
+      x: margin,
+      y: view.bounds.height - margin - 28,
+      width: availableWidth,
+      height: 28
+    )
+    let boxY = helpLabel.frame.minY - 72
+    preferencesBox.frame = NSRect(
+      x: margin,
+      y: boxY,
+      width: availableWidth,
+      height: 62
+    )
+    showNotificationCheckbox.frame = NSRect(
+      x: 12,
+      y: 18,
+      width: preferencesBox.contentView?.bounds.width ?? availableWidth - 24,
+      height: 20
+    )
+    notificationStatusLabel?.frame = NSRect(
+      x: margin,
+      y: boxY - 44,
+      width: availableWidth,
+      height: notificationStatusLabel?.isHidden == false ? 36 : 0
+    )
+    quitButton.sizeToFit()
+    quitButton.frame.origin = NSPoint(
+      x: view.bounds.width - margin - quitButton.frame.width,
+      y: 16
+    )
   }
 }
 
